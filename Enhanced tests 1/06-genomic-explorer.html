@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BioScale · Genomic atlas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/higlass@1.13.4/dist/hglib.css">
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#29414a;background:#edf2f2;font-size:14px}*{box-sizing:border-box}body{margin:0}header{background:#102f36;color:#fff;padding:26px 32px}header small{color:#8bc8bb;letter-spacing:2px;font-size:11px}h1{font-size:32px;font-weight:600;margin:9px 0}header p{color:#b9d0d4;margin:0;max-width:900px;line-height:1.6}.badge{float:right;border:1px solid #537077;border-radius:20px;padding:7px 12px;font-size:11px;color:#b9dcd1}.layout{display:grid;grid-template-columns:292px minmax(0,1fr);gap:18px;padding:22px;max-width:1850px;margin:auto}aside,main{min-width:0}.card{background:white;border:1px solid #d5e1e4;border-radius:11px;margin-bottom:16px;overflow:hidden}.pad{padding:18px}h2{font-size:16px;margin:0 0 6px}h3{font-size:13px;margin:0 0 13px}p{line-height:1.55}.muted,.note{font-size:12px;color:#6b8087;line-height:1.6}.note{padding:11px 14px;background:#f2f7f7;border-radius:6px}label{display:block;font-size:12px;font-weight:600;margin:14px 0 6px}select,input,button{font:inherit;border-radius:6px;border:1px solid #cbd9dd;padding:9px;background:white;color:#29414a}select,input{width:100%}button{cursor:pointer}button:hover{border-color:#157d72;background:#edf8f5}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #79bdb0;outline-offset:2px}.primary{background:#157d72;color:white;border-color:#157d72}.primary:hover{background:#11695f;color:white}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.row button{flex:1;white-space:nowrap;font-size:12px}.switch{display:flex;align-items:center;gap:8px;font-weight:400}.switch input{width:auto;accent-color:#157d72}.metric{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.metric>div{background:white;border:1px solid #d5e1e4;border-radius:9px;padding:14px}.metric strong{display:block;font-size:21px;color:#164d52;margin-top:6px}.metric span{font-size:11px;color:#71858b;text-transform:uppercase;letter-spacing:1px}.toolbar{padding:16px 18px;border-bottom:1px solid #e1eaec;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}#status{font-size:12px;color:#157d72}#tracks{min-height:530px;padding:8px 4px;position:relative}#tracks canvas{max-width:none}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#60757c;padding:10px 18px 14px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.bottom{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:16px}#overview{width:100%;height:auto;display:block}.chrom{cursor:pointer;stroke:white;stroke-width:2}.chrom:hover,.chrom:focus{filter:brightness(.86);outline:none}.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-wrap:wrap;gap:3px;margin:12px 0;min-height:40px}.base{width:22px;text-align:center;font-size:13px;border:0;padding:5px 0;background:#edf3f5}.base[data-base=A]{color:#16845c;background:#e7f3ec}.base[data-base=C]{color:#2376a0;background:#e7f2f9}.base[data-base=G]{color:#967010;background:#faf1d9}.base[data-base=T]{color:#bd5361;background:#f9e9ee}.base.variant{box-shadow:inset 0 -3px #913e85}.inspector{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px}.inspector dt{color:#72878d;font-size:10px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}.inspector dd{margin:0;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;font-weight:500;color:#70868d;background:#f3f7f8}th,td{padding:10px 12px;border-bottom:1px solid #e6edef}tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#e9f5f1}.table-wrap{max-height:260px;overflow:auto}.warn{color:#9a5740}#regionLabel{font-family:ui-monospace,monospace;font-size:12px;color:#44646c}.export{margin-top:12px}footer{padding:0 25px 22px;font-size:11px;color:#75898e}.empty{padding:50px 25px;color:#72868c;text-align:center}#sequenceTitle{font-size:12px}#overview text{pointer-events:none}.gene-picks button{font-size:11px;padding:6px 9px}.coordinates{font-size:11px;color:#71868b;display:flex;justify-content:space-between;gap:10px}.error{padding:25px;color:#9b443a;line-height:1.6}a{color:#16796e}@media(max-width:1000px){.layout{grid-template-columns:245px minmax(0,1fr);padding:12px;gap:12px}.bottom{grid-template-columns:1fr}.badge{display:none}}@media(max-width:720px){header{padding:22px}h1{font-size:26px}.layout{grid-template-columns:1fr}.metric{gap:7px}.metric>div{padding:10px}.metric strong{font-size:17px}aside{display:grid;grid-template-columns:1fr 1fr;gap:12px}aside .card{margin:0}aside .card:last-child{grid-column:1/-1}#overview{max-height:250px}.bottom{display:block}.toolbar{padding:12px}#tracks{overflow:hidden}}@media(max-width:440px){aside{display:block}aside .card{margin-bottom:12px}.metric span{letter-spacing:0;font-size:10px}}
+</style>
+<script type="importmap">
+{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom":"https://esm.sh/react-dom@18.3.1?external=react","react-dom/client":"https://esm.sh/react-dom@18.3.1/client?external=react","pixi":"https://esm.sh/pixi.js@6.5.10","pixi.js":"https://esm.sh/pixi.js@6.5.10","higlass":"https://esm.sh/higlass@1.13.4?external=react,react-dom,pixi.js","gosling.js":"https://esm.sh/gosling.js@0.11.0?external=react,react-dom,pixi.js,higlass"}}
+</script>
+</head>
+<body>
+<header><span class="badge">ENHANCED TEST 06 / 06</span><small>BIOSCALE · GENOMIC EXPLORATION</small><h1>From genome to nucleotide.</h1><p>A multiscale atlas of synthetic chromosomes, genes and clone-associated variants. Follow a locus across linked tracks, then inspect its invented sequence. Genomic coordinates are not an evolutionary timeline.</p></header>
+<div class="layout">
+<aside>
+<section class="card pad"><h2>Genome overview</h2><p class="muted">Click a chromosome to explore. The inner arcs connect invented rearrangement endpoints.</p><svg id="overview" viewBox="0 0 260 265" role="img" aria-label="Interactive circular overview of four synthetic chromosomes"></svg><div class="row"><button id="whole">Whole genome</button><button id="reset">Reset atlas</button></div><p class="note">DEMO-4 assembly · four invented chromosomes, 3.4 Mb total. No human reference genome or measured sequence.</p></section>
+<section class="card pad"><h2>Navigate a locus</h2><label for="chromosome">Chromosome</label><select id="chromosome"><option value="chr1">chr1 · 1,000,000 bp</option><option value="chr2">chr2 · 900,000 bp</option><option value="chr3">chr3 · 800,000 bp</option><option value="chr4">chr4 · 700,000 bp</option></select><label for="region">Region or demo gene</label><input id="region" value="chr1:180000-340000" aria-describedby="searchHelp"><p id="searchHelp" class="muted">Try DEMO1, or chr2:100000-200000. Coordinates are 1-based, inclusive.</p><button id="go" class="primary" style="width:100%">Go to region</button><p id="navigationError" class="muted warn" role="alert"></p><div class="row"><button id="left" aria-label="Pan left">← Pan</button><button id="right" aria-label="Pan right">Pan →</button></div><div class="row" style="margin-top:7px"><button id="zoomIn">Zoom in +</button><button id="zoomOut">Zoom out −</button></div><label>Jump to annotated gene</label><div class="row gene-picks" id="genePicks"></div></section>
+<section class="card pad"><h2>Track layers</h2><label class="switch"><input type="checkbox" data-layer="genes" checked>Gene bodies &amp; exons</label><label class="switch"><input type="checkbox" data-layer="variants" checked>Clone-associated variants</label><label class="switch"><input type="checkbox" data-layer="coverage" checked>Coverage &amp; expression</label><label class="switch"><input type="checkbox" data-layer="links" checked>Within-chromosome links</label><button id="export" class="export" style="width:100%">Download tracks PNG</button><p class="muted">Wheel to zoom, drag to pan, hover for annotations. Track changes preserve the current locus. PNG contains Gosling tracks only.</p></section>
+</aside>
+<main>
+<div class="metric"><div><span>Assembly span</span><strong>3.40 Mb</strong></div><div><span>Annotated genes</span><strong id="geneCount">16</strong></div><div><span>Demo variants</span><strong id="variantCount">24</strong></div></div>
+<section class="card"><div class="toolbar"><div><h2>Linked genomic tracks</h2><div id="regionLabel">chr1:180,000–340,000</div></div><span id="status" role="status">Loading Gosling.js…</span></div><div id="tracks"><div class="empty">Preparing the synthetic genome…</div></div><div class="legend"><span><i class="dot" style="background:#248d7c"></i>Genes / plus strand</span><span><i class="dot" style="background:#647dbe"></i>Minus strand</span><span><i class="dot" style="background:#be5b82"></i>Variants</span><span><i class="dot" style="background:#d49a40"></i>Coverage / arbitrary units</span></div></section>
+<div class="bottom"><section class="card pad"><h2>Sequence lens</h2><p id="sequenceTitle" class="muted"></p><div class="coordinates"><span id="sequenceStart"></span><span id="sequenceEnd"></span></div><div id="sequence" class="seq" aria-label="Synthetic nucleotide sequence"></div><div class="row"><button id="sequenceZoom">Zoom tracks to these bases</button><button id="download">Download locus JSON</button></div><p class="muted">A 60-base lens centred on the visible locus. Coloured bases are generated deterministically, not reference sequence. Underlined bases carry demo variants; click a base to inspect.</p></section><section class="card pad"><h2>Annotation inspector</h2><p id="selectionTitle" class="muted">Select a variant, gene or nucleotide.</p><dl id="inspector" class="inspector"></dl><p class="note">Event order and sampling day are annotation metadata only. They never determine genomic position, spacing or the track axis.</p></section></div>
+<section class="card"><div class="toolbar"><div><h2>Variant catalogue</h2><p class="muted" style="margin:4px 0">Click a row to focus its locus. Sort by coordinate or event order without changing the genomic axis.</p></div><select id="sort" style="width:auto" aria-label="Sort variant catalogue"><option value="position">Genomic coordinate</option><option value="event">Event order</option></select></div><div class="table-wrap"><table><thead><tr><th>Variant</th><th>Genomic locus</th><th>Change</th><th>Clone</th><th>Event order</th><th>Demo day</th></tr></thead><tbody id="variantsTable"></tbody></table></div></section>
+</main>
+</div>
+<footer>Placeholder-only visual benchmark · Gosling.js 0.11.0 · All genes, bases, links, signals and clone associations are invented. No biological inference, treatment prediction or real genome annotation. Internet access and WebGL are required; no local server or build step.</footer>
+<script type="module">
+// Entirely synthetic input. Coordinates in the UI are 1-based inclusive; Gosling
+// interval boundaries use start - 1, end, so single-base markers cover one base.
+const $=id=>document.getElementById(id), colors=['#248d7c','#647dbe','#c48643','#ab6591'];
+const assembly=[['chr1',1000000],['chr2',900000],['chr3',800000],['chr4',700000]];
+const offsets=Object.fromEntries(assembly.map(([c,n],i)=>[c,assembly.slice(0,i).reduce((s,x)=>s+x[1],0)]));
+const sizes=Object.fromEntries(assembly),total=3400000;
+const genes=[],exons=[],variants=[],signals=[],links=[];
+const baseAt=(chr,p)=>'ACGT'[(Math.imul(p,2654435761)^(p>>>3)^(p>>>7)^sizes[chr])>>>0&3];
+assembly.forEach(([chromosome,size],c)=>{
+ for(let g=0;g<4;g++){
+  const start=Math.round(size*(.09+g*.22)),end=start+Math.round(size*.075),name=`DEMO${c*4+g+1}`,strand=g%2?'-':'+';
+  const gene={chromosome,start,end,name,strand,row:strand==='+'?'Plus strand':'Minus strand',kind:'Gene'};genes.push(gene);
+  for(let e=0;e<4;e++)exons.push({...gene,start:start+e*(end-start)/4,end:start+(e+.52)*(end-start)/4,kind:'Exon'});
+ }
+ for(let v=0;v<6;v++){
+  const position=Math.round(size*(.12+v*.145)),ref=baseAt(chromosome,position),alt='ACGT'[('ACGT'.indexOf(ref)+1+v%3)%4];
+  variants.push({chromosome,start:position-1,end:position,position,id:`VAR-${String(c*6+v+1).padStart(2,'0')}`,ref,alt,clone:`CL-${'ABCD'[(v+c)%4]}`,event:1+(c*6+v)*7%24,day:4+((c*6+v)*13)%75,score:20+v*11,kind:'Variant'});
+ }
+ for(let b=0;b<120;b++){
+  const start=Math.floor(size*b/120),end=Math.floor(size*(b+1)/120);
+  signals.push({chromosome,start,end,coverage:Math.round(26+20*Math.sin(b*.19+c)**2+32*Math.exp(-(((b-45-c*8)/16)**2))),expression:Math.round(50+40*Math.sin(b*.16+c)*Math.cos(b*.075)),kind:'Signal bin'});
+ }
+ links.push({chromosome,start:Math.round(size*.12),end:Math.round(size*.38),name:`Rearrangement ${c+1}A`},{chromosome,start:Math.round(size*.52),end:Math.round(size*.82),name:`Rearrangement ${c+1}B`});
+});
+const layers={genes:true,variants:true,coverage:true,links:true};
+let api=null,selected=null,location={chr:'chr1',start:1,end:1000000},viewId='genome-view',sequenceWindow=null,renderTimer,rendering=false,pendingRender=false;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function inspect(item){
+ selected=item;$('selectionTitle').textContent=item.id||item.name||`${item.chromosome}:${fmt(item.position)}`;
+ const fields=item.kind==='Variant'?{'Annotation':'Invented single-nucleotide variant','Genomic position':`${item.chromosome}:${fmt(item.position)}`,'Allele change':`${item.ref} → ${item.alt}`,'Associated clone':item.clone,'Event order':`#${item.event} (not position)`,'Sampling day':`${item.day} (demo time)`}:item.kind==='Base'?{'Annotation':'Invented nucleotide','Genomic position':`${item.chromosome}:${fmt(item.position)}`,'Base':item.base,'Sequence source':'Deterministic demo generator'}:{'Annotation':item.kind||'Gene','Genomic interval':`${item.chromosome}:${fmt(item.start+1)}–${fmt(item.end)}`,'Strand':item.strand==='+'?'Plus (+)':'Minus (−)','Name':item.name};
+ $('inspector').innerHTML=Object.entries(fields).map(([k,v])=>`<div><dt>${escape(k)}</dt><dd>${escape(v)}</dd></div>`).join('');drawTable();
+}
+function drawTable(){
+ const rows=[...variants].sort($('sort').value==='event'?(a,b)=>a.event-b.event:(a,b)=>offsets[a.chromosome]+a.position-offsets[b.chromosome]-b.position);
+ $('variantsTable').innerHTML=rows.map(v=>`<tr tabindex="0" data-id="${v.id}" class="${selected?.id===v.id?'selected':''}" aria-label="Inspect ${v.id}"><td>${v.id}</td><td>${v.chromosome}:${fmt(v.position)}</td><td>${v.ref} → ${v.alt}</td><td>${v.clone}</td><td>#${v.event}</td><td>${v.day}</td></tr>`).join('');
+ $('variantsTable').querySelectorAll('tr').forEach(row=>{const action=()=>{const v=variants.find(x=>x.id===row.dataset.id);inspect(v);navigate(v.chromosome,v.position-1500,v.position+1500);};row.onclick=action;row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action();}};});
+}
+function drawSequence(){
+ const chr=location.chr||'chr1',center=location.chr?Math.floor((location.start+location.end)/2):variants[0].position;
+ const start=Math.max(1,Math.min(sizes[chr]-59,center-29)),end=start+59;sequenceWindow={chr,start,end};
+ $('sequenceTitle').textContent=location.chr?`60-base lens · ${chr} · centre of visible interval`:'Whole-genome view · select a chromosome for a linked sequence lens';
+ $('sequenceStart').textContent=`${chr}:${fmt(start)}`;$('sequenceEnd').textContent=fmt(end);
+ $('sequence').innerHTML=Array.from({length:60},(_,i)=>{const p=start+i,v=variants.find(v=>v.chromosome===chr&&v.position===p),base=baseAt(chr,p);return `<button class="base ${v?'variant':''}" data-base="${base}" data-pos="${p}" title="${chr}:${fmt(p)} · ${base}${v?' · '+v.id:''}" aria-label="${chr} position ${p}, ${base}${v?', '+v.id:''}">${base}</button>`;}).join('');
+ $('sequence').querySelectorAll('button').forEach(b=>b.onclick=()=>{const position=+b.dataset.pos,v=variants.find(v=>v.chromosome===chr&&v.position===position);inspect(v||{kind:'Base',chromosome:chr,position,base:baseAt(chr,position)});});
+}
+function polar(a,r){return [130+r*Math.sin(a),127-r*Math.cos(a)];}
+function pathArc(a,b,r){const p=polar(a,r),q=polar(b,r);return `M${p} A${r},${r} 0 ${b-a>Math.PI?1:0} 1 ${q}`;}
+function drawOverview(){
+ let html='';const theta=p=>p/total*Math.PI*2,point=(chr,p,r)=>polar(theta(offsets[chr]+p),r);
+ assembly.forEach(([chr,n],i)=>{
+  const a=theta(offsets[chr])+.025,b=theta(offsets[chr]+n)-.025,p=polar((a+b)/2,114);
+  html+=`<path class="chrom" tabindex="0" role="button" aria-label="Explore ${chr}" data-chr="${chr}" d="${pathArc(a,b,94)}" fill="none" style="stroke:${colors[i]};stroke-width:${location.chr===chr?17:11}"/><text x="${p[0]}" y="${p[1]+4}" text-anchor="middle" font-size="12" fill="#49636b">${chr}</text>`;
+  signals.filter(s=>s.chromosome===chr).forEach(s=>{html+=`<path d="${pathArc(theta(offsets[chr]+s.start)+.002,theta(offsets[chr]+s.end)-.002,80)}" fill="none" stroke="${colors[i]}" opacity="${.15+s.expression/140}" stroke-width="7"/>`;});
+ });
+ [...links,{chromosome:'chr1',start:250000,end:500000,target:'chr3'}].forEach((l,i)=>{const p=point(l.chromosome,l.start,72),q=point(l.target||l.chromosome,l.end,72);html+=`<path d="M${p} Q130,127 ${q}" fill="none" stroke="${colors[i%4]}" opacity=".36" stroke-width="1.4"/>`;});
+ if(location.chr){const a=theta(offsets[location.chr]+location.start-1),b=theta(offsets[location.chr]+location.end);html+=`<path d="${pathArc(a,Math.max(a+.009,b),105)}" stroke="#193b43" stroke-width="3" fill="none"/>`;}
+ html+='<text x="130" y="251" font-size="10" text-anchor="middle" fill="#799096">DEMO-4 · signal ring + relation arcs</text>';
+ $('overview').innerHTML=html;$('overview').querySelectorAll('[data-chr]').forEach(p=>{const action=()=>navigate(p.dataset.chr,1,sizes[p.dataset.chr]);p.onclick=action;p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action();}};});
+}
+function syncUI(){
+ $('regionLabel').textContent=location.chr?`${location.chr}:${fmt(location.start)}–${fmt(location.end)} · ${fmt(location.end-location.start+1)} bp`:'Whole genome · DEMO-4 · 3,400,000 bp';
+ $('region').value=location.chr?`${location.chr}:${location.start}-${location.end}`:'whole genome';if(location.chr)$('chromosome').value=location.chr;drawSequence();drawOverview();
+}
+function navigate(chr,start,end){
+ start=Math.max(1,Math.round(start));end=Math.min(sizes[chr],Math.round(end));if(end<=start)end=Math.min(sizes[chr],start+1);
+ location={chr,start,end};$('navigationError').textContent='';syncUI();if(api)api.zoomTo(api.getTrackIds()[0],`${chr}:${start-1}-${end}`,0,0);
+}
+function changeWindow(factor,shift=0){if(!location.chr){navigate('chr1',1,sizes.chr1);return;}const n=sizes[location.chr],span=Math.min(n,Math.max(20,Math.round((location.end-location.start+1)*factor))),center=(location.start+location.end)/2+(location.end-location.start+1)*shift,start=Math.max(1,Math.min(n-span+1,Math.round(center-span/2)));navigate(location.chr,start,start+span-1);}
+function search(){
+ const text=$('region').value.trim(),gene=genes.find(g=>g.name.toLowerCase()===text.toLowerCase());if(gene){inspect(gene);navigate(gene.chromosome,gene.start-8000,gene.end+8000);return;}
+ const m=text.replaceAll(',','').match(/^(chr[1-4])(?::(\d+)-(\d+))?$/i);if(!m){$('navigationError').textContent='Enter DEMO1–DEMO16, chr1–chr4, or chr1:100-500.';return;}
+ const chr=m[1].toLowerCase(),start=m[2]?+m[2]:1,end=m[3]?+m[3]:sizes[chr];if(start<1||end>sizes[chr]||start>=end){$('navigationError').textContent=`Use a valid interval from 1 to ${fmt(sizes[chr])}.`;return;}navigate(chr,start,end);
+}
+function data(values,fields=['start','end']){return {type:'json',values,chromosomeField:'chromosome',genomicFields:fields};}
+function makeSpec(){
+ const width=Math.max(180,Math.floor($('tracks').getBoundingClientRect().width)-34),tracks=[],x={field:'start',type:'genomic',axis:'top'},xe={field:'end',type:'genomic'};
+ const tooltip=[{field:'name',type:'nominal',alt:'Demo gene'},{field:'chromosome',type:'nominal',alt:'Chromosome'},{field:'start',type:'genomic',alt:'Interval start (0-based)'},{field:'end',type:'genomic',alt:'Interval end'},{field:'strand',type:'nominal',alt:'Strand'}];
+ if(layers.genes)tracks.push({id:'genes',title:'01 · GENE ANNOTATIONS · genomic position (bp)',alignment:'overlay',height:85,tracks:[{data:data(genes),mark:'rule',x,xe,y:{field:'row',type:'nominal',axis:'left'},color:{field:'strand',type:'nominal',domain:['+','-'],range:['#248d7c','#647dbe']},size:{value:2},tooltip},{data:data(exons),mark:'rect',x,xe,y:{field:'row',type:'nominal'},size:{value:13},color:{field:'strand',type:'nominal',domain:['+','-'],range:['#248d7c','#647dbe']},tooltip},{data:data(genes),mark:'text',x,xe,y:{field:'row',type:'nominal'},text:{field:'name',type:'nominal'},color:{value:'#193b43'},size:{value:10},style:{dy:-14},tooltip}]});
+ if(layers.variants)tracks.push({id:'variants',title:'02 · VARIANTS · colour = associated clone (not event order)',data:data(variants),mark:'point',x, y:{field:'clone',type:'nominal',axis:'left'},color:{field:'clone',type:'nominal',domain:['CL-A','CL-B','CL-C','CL-D'],range:colors,legend:true},size:{value:7},height:100,tooltip:[{field:'id',type:'nominal'},{field:'position',type:'quantitative',alt:'Genomic position (1-based)'},{field:'clone',type:'nominal'},{field:'ref',type:'nominal'},{field:'alt',type:'nominal'},{field:'event',type:'quantitative',alt:'Event order (not position)'},{field:'day',type:'quantitative',alt:'Demo sampling day'}]});
+ if(layers.coverage){tracks.push({id:'coverage',title:'03 · COVERAGE · arbitrary demo units',data:data(signals),mark:'bar',x,xe,y:{field:'coverage',type:'quantitative',axis:'left',domain:[0,85]},color:{value:'#c4964a'},height:90,tooltip:[{field:'coverage',type:'quantitative',alt:'Demo coverage'}]});tracks.push({id:'expression',title:'04 · SIGNAL HEATMAP · arbitrary demo score',data:data(signals),mark:'rect',x,xe,color:{field:'expression',type:'quantitative',domain:[0,100],range:['#eff7ee','#77bdb0','#1c5c67'],legend:true},height:35,tooltip:[{field:'expression',type:'quantitative',alt:'Demo signal'}]});}
+ if(layers.links)tracks.push({id:'links',title:'05 · RELATIONSHIP ARCS · invented structural links',data:data(links),mark:'withinLink',x,xe,color:{value:'#9273a4'},opacity:{value:.65},height:90,tooltip:[{field:'name',type:'nominal'},{field:'start',type:'genomic'},{field:'end',type:'genomic'}]});
+ if(!tracks.length)tracks.push({id:'empty',title:'All annotation layers hidden · genomic axis remains navigable',data:data(genes),mark:'point',x,opacity:{value:0},height:80});
+ // Row encodings partition discrete lanes; y is reserved for numeric signals.
+ for(const track of tracks){
+  if(track.id==='links'){track.style={linkStyle:'elliptical',linkMinHeight:.3};track.stroke={value:'#9273a4'};track.strokeWidth={value:2};}
+  for(const [i,t] of (track.tracks||[track]).entries()){if(track.tracks)t.id=`gene-layer-${i}`;if(t.y?.type==='nominal'){t.row={field:t.y.field,type:'nominal'};delete t.y;}t.experimental={mouseEvents:true};}
+ }
+ return {id:viewId,assembly,layout:'linear',spacing:16,static:false,xDomain:location.chr?{chromosome:location.chr,interval:[location.start-1,location.end]}:{interval:[0,total]},tracks:tracks.map(t=>({...t,width}))};
+}
+function locationChanged(_,event){
+ // Stacked tracks have their own HiGlass view IDs, not the root spec ID.
+ // Every track is linked. Convert boundary coordinates through assembly offsets;
+ // an end exactly at chr2:0 belongs to the end of chr1, not a second chromosome.
+ if(!api||event.id!==api.getTrackIds()[0])return;
+ const d=event.genomicRange;if(!Array.isArray(d)||d.length!==2)return;
+ const a=Math.max(0,Math.min(total-1,offsets[d[0].chromosome]+Math.round(d[0].position))),b=Math.max(a+1,Math.min(total,offsets[d[1].chromosome]+Math.round(d[1].position)));
+ if(!Number.isFinite(a+b))return;
+ const chr=assembly.find(([c,n])=>a>=offsets[c]&&b<=offsets[c]+n)?.[0];
+ const next=chr?{chr,start:a-offsets[chr]+1,end:b-offsets[chr]}:{chr:null,start:1,end:total};
+ if(JSON.stringify(next)!==JSON.stringify(location)){location=next;syncUI();}
+}
+async function renderTracks(){
+ if(rendering){pendingRender=true;return;}
+ rendering=true;$('status').textContent='Rendering tracks…';
+ try{
+  const {embed}=await import('gosling.js');
+  if(api){api.unsubscribe('location');api.unsubscribe('click');}
+  if(!api)$('tracks').replaceChildren();
+  api=await embed($('tracks'),makeSpec(),{padding:8});
+  api.subscribe('location',locationChanged);api.subscribe('click',(_,e)=>{const item=e.data?.[0];if(!item)return;if(item.id&&variants.find(v=>v.id===item.id))inspect(variants.find(v=>v.id===item.id));else if(item.name&&genes.find(g=>g.name===item.name))inspect(genes.find(g=>g.name===item.name));});
+  $('status').textContent='Ready · scroll to zoom / drag to pan';$('tracks').style.minHeight='0';
+ }catch(error){console.error(error);$('status').textContent='Unable to load viewer';$('tracks').innerHTML='<div class="error">Gosling could not start. This preview needs internet access, WebGL and JavaScript module support. Check the browser console for the exact CDN or rendering error. No local server is required.</div>';}
+ finally{rendering=false;if(pendingRender){pendingRender=false;renderTracks();}}
+}
+function save(name,value,type){const url=URL.createObjectURL(new Blob([value],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('go').onclick=search;$('region').onkeydown=e=>{if(e.key==='Enter')search();};$('chromosome').onchange=e=>navigate(e.target.value,1,sizes[e.target.value]);
+$('whole').onclick=()=>{location={chr:null,start:1,end:total};syncUI();if(api)api.zoomToExtent(api.getTrackIds()[0],0);};
+$('left').onclick=()=>changeWindow(1,-.4);$('right').onclick=()=>changeWindow(1,.4);$('zoomIn').onclick=()=>changeWindow(.4);$('zoomOut').onclick=()=>changeWindow(2.5);
+$('sort').onchange=drawTable;$('sequenceZoom').onclick=()=>navigate(sequenceWindow.chr,sequenceWindow.start,sequenceWindow.end);
+$('download').onclick=()=>{const chr=location.chr;save('bioscale-demo-locus.json',JSON.stringify({disclaimer:'Invented placeholder data. Not a reference genome or biological inference.',assembly:'DEMO-4',coordinateConvention:'1-based inclusive for viewport and variants; gene intervals are 0-based half-open',viewport:location,sequenceLens:{...sequenceWindow,bases:Array.from({length:60},(_,i)=>baseAt(sequenceWindow.chr,sequenceWindow.start+i)).join('')},genes:genes.filter(g=>(!chr||g.chromosome===chr)&&(!chr||g.end>=location.start&&g.start<location.end)),variants:variants.filter(v=>(!chr||v.chromosome===chr)&&(!chr||v.position>=location.start&&v.position<=location.end))},null,2),'application/json');};
+$('export').onclick=()=>{try{api?.exportPng();}catch(e){$('navigationError').textContent=`PNG export unavailable: ${e.message}`;}};
+document.querySelectorAll('[data-layer]').forEach(c=>c.onchange=()=>{layers[c.dataset.layer]=c.checked;renderTracks();});
+$('reset').onclick=()=>{Object.keys(layers).forEach(k=>layers[k]=true);document.querySelectorAll('[data-layer]').forEach(c=>c.checked=true);$('sort').value='position';location={chr:'chr1',start:1,end:1000000};inspect(variants[1]);syncUI();renderTracks();};
+$('genePicks').innerHTML=genes.filter((_,i)=>i%4===0).map(g=>`<button data-gene="${g.name}">${g.name}</button>`).join('');$('genePicks').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('region').value=b.dataset.gene;search();});
+let lastWidth=0;new ResizeObserver(entries=>{const w=Math.round(entries[0].contentRect.width);if(Math.abs(w-lastWidth)<5)return;lastWidth=w;clearTimeout(renderTimer);renderTimer=setTimeout(()=>{if(api)renderTracks();},250);}).observe($('tracks'));
+inspect(variants[1]);syncUI();renderTracks();
+// Read-only diagnostics for reproducible smoke tests; not an alternate renderer.
+window.genomicDemo={assembly,genes,exons,variants,signals,links,baseAt,get location(){return {...location};},get api(){return api;},get sequenceWindow(){return {...sequenceWindow};}};
+</script>
+</body>
+</html>

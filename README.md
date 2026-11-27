@@ -17,3 +17,11 @@ Open `mutation-order-d3.html` to inspect a simulated clone's mutations in inferr
 ## PR 4 — environmental effects
 
 Open `environment-effects-d3.html` to adjust placeholder oxygen, drug exposure, and acidity values and compare clone fitness.
+
+## PR 5 — spatial cell view (Three.js)
+
+Open `cell-spatial-three.html` in Cursor to inspect the code, then run it using the same HTML preview workflow as the earlier files. No localhost server or npm installation is required. Internet access is required for the pinned Three.js 0.160.1 modules, and the preview must allow JavaScript and WebGL.
+
+Drag to rotate, scroll to zoom, and click the nucleus, orange mitochondria, or blue/teal vesicles. The Inspect menu provides another way to select each object. Try Show membrane, Auto-rotate, and Reset view. All shapes, locations, measurements, and marker data are invented placeholders, not a validated biological model.
+
+Built using the [Three.js documentation](https://threejs.org/docs/).

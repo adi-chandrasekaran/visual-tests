@@ -9,3 +9,7 @@ Open `clone-tree-d3.html` to try a clickable D3.js lineage tree with placeholder
 ## PR 2 — clone population evolution
 
 Open `clone-population-d3.html` to compare simulated clone population shares across generations. Click a line or clone button to focus it.
+
+## PR 3 — mutation order
+
+Open `mutation-order-d3.html` to inspect a simulated clone's mutations in inferred evolutionary order. Click a marker for its biological interpretation.

@@ -2,6 +2,16 @@
 
 New, independent visualization experiments. Original prototypes and the combined application are not modified by these enhancements. Each module is delivered as its own PR for manual testing and merging before the next module starts.
 
+## Run all six enhanced modules together
+
+Open **`enhanced-tests.html` in the project root** (one level above this folder) in Cursor. Run it with the same HTML preview workflow used for these individual files. It is a new launcher, separate from the original `index.html`; no localhost, npm installation or build is required.
+
+The six tabs load the actual files below in independent frames, preserving every module's original controls, inspectors, charts and exports. Modules load on their first visit; switching tabs preserves their state and scroll position. Internet access, JavaScript modules/import maps, local HTML frames and WebGL must be allowed by your preview. The launcher does not bypass preview restrictions or change how each library works. Previously visited modules can continue background animations.
+
+After changing an individual file, **save it and click Reload current view** in the launcher. That tab reads the updated source directly, with no copying or rebuild, and resets its state. Other tabs stay loaded. Refreshing the entire application resets all loaded modules. There is no automatic filesystem watcher. Keep the filenames and this folder name unchanged, or update the six paths in the launcher if you rename them.
+
+Use **Open individually** in the launcher or open any of the HTML files below directly to continue running each module on its own. Keyboard navigation in the tab bar supports Left/Right arrows, Home and End. URL fragments (`#lineage`, `#cell`, `#molecule`, `#environment`, `#population`, `#genomics`) open a particular module. A frame's page-load status is not a claim that its asynchronous CDN libraries have finished loading; each module displays its own readiness/errors.
+
 ## 01 — Radial phylogenetic lineage
 
 Open `01-radial-lineage.html` in Cursor and run using your HTML preview workflow. No localhost server or build is needed. Internet access loads pinned D3.js 7.9.0.
@@ -70,4 +80,4 @@ Download tracks PNG exports the current Gosling canvas (not surrounding HTML con
 
 References: [Gosling embedding](https://gosling-lang.org/docs/usage/), [composition](https://gosling-lang.org/docs/composition/), [inline data](https://gosling-lang.org/docs/data/) and [JavaScript API](https://gosling-lang.org/docs/js-api/). The browser module is pinned to the documented 0.11.0 embedding release; the current documentation may include newer features.
 
-All six enhanced experiments now have separate standalone code files. They are not integrated into the original combined application.
+All six enhanced experiments remain separate standalone code files. The new root-level `enhanced-tests.html` references them without changing or duplicating their source. They are not added to the original combined application.

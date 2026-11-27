@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D3 mutation order prototype</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #0d1714; color: #e7f2eb; }
+    main { max-width: 1100px; margin: auto; padding: 28px; }
+    h1 { margin-bottom: 6px; font-size: 1.65rem; }
+    p { color: #afc5b8; line-height: 1.5; }
+    #chart { border: 1px solid #2b4539; border-radius: 14px; background: #12211b; overflow: auto; }
+    svg { display: block; }
+    .axis text { fill: #afc5b8; font-size: 12px; }
+    .axis path, .axis line { stroke: #48695a; }
+    .track { stroke: #48695a; stroke-width: 8px; stroke-linecap: round; }
+    .event { cursor: pointer; }
+    .event circle { stroke: #f1faf3; stroke-width: 2px; }
+    .event text { fill: #e7f2eb; font-size: 13px; pointer-events: none; }
+    #details { min-height: 58px; padding: 16px; margin-top: 16px; border-radius: 12px; background: #183025; }
+    #details strong { color: #80dbac; }
+    .hint { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mutation order: D3.js prototype</h1>
+    <p>Click a mutation to inspect where it occurred and the selective advantage it gives the clone.</p>
+    <div id="chart" aria-label="Interactive clone mutation timeline"></div>
+    <div id="details" aria-live="polite"><strong>Clone A1 mutation history</strong><br>Click a mutation marker on the timeline.</div>
+    <p class="hint">Standalone HTML for direct opening from Cursor; no development server is needed.</p>
+  </main>
+  <script>
+    const mutations = [
+      { generation: 0, gene: "TP53", variant: "p.R175H", type: "Founder driver", effect: "Suppresses DNA-damage checkpoint signalling.", color: "#58bf88" },
+      { generation: 2, gene: "KRAS", variant: "p.G12D", type: "Growth driver", effect: "Increases RAS/MAPK pathway activity and proliferation.", color: "#e79f61" },
+      { generation: 4, gene: "CDKN2A", variant: "loss", type: "Cell-cycle loss", effect: "Removes an additional cell-cycle checkpoint.", color: "#729dd8" },
+      { generation: 5, gene: "PIK3CA", variant: "p.H1047R", type: "Resistance driver", effect: "Creates a PI3K/AKT survival signal under treatment pressure.", color: "#bb8cde" },
+      { generation: 7, gene: "SMAD4", variant: "loss", type: "Invasion-associated", effect: "Weakens TGF-beta growth-control signalling.", color: "#db7b8d" }
+    ];
+    const width = 1000, height = 470, margin = { top: 70, right: 70, bottom: 100, left: 70 };
+    const x = d3.scaleLinear().domain([0, 8]).range([margin.left, width - margin.right]);
+    const svg = d3.select("#chart").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
+    const y = 220;
+    svg.append("line").attr("class", "track").attr("x1", x(0)).attr("x2", x(8)).attr("y1", y).attr("y2", y);
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y + 58})`).call(d3.axisBottom(x).ticks(8).tickFormat((d) => `Generation ${d}`));
+    svg.append("text").attr("x", margin.left).attr("y", 42).attr("fill", "#afc5b8").attr("font-size", 14).text("Clone A1: observed mutations in inferred order");
+    const events = svg.selectAll("g.event").data(mutations).join("g").attr("class", "event")
+      .attr("transform", (d, i) => `translate(${x(d.generation)},${y + (i % 2 ? 0 : -18)})`).on("click", (_, d) => showDetails(d));
+    events.append("circle").attr("r", 22).attr("fill", (d) => d.color);
+    events.append("text").attr("text-anchor", "middle").attr("dy", -36).text((d) => d.gene);
+    events.append("text").attr("text-anchor", "middle").attr("dy", 6).attr("fill", "#102118").attr("font-weight", 700).text((d) => d.generation + 1);
+    function showDetails(mutation) {
+      document.querySelector("#details").innerHTML = `<strong>${mutation.gene} ${mutation.variant}</strong> · ${mutation.type}<br>Generation ${mutation.generation}: ${mutation.effect}`;
+    }
+  </script>
+</body>
+</html>

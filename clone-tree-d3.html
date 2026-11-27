@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D3 clone lineage prototype</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; color: #e7f2eb; background: #0d1714; }
+    main { max-width: 1100px; margin: auto; padding: 28px; }
+    h1 { margin-bottom: 6px; font-size: 1.65rem; }
+    p { color: #afc5b8; line-height: 1.5; }
+    #chart { min-height: 570px; overflow: auto; border: 1px solid #2b4539; border-radius: 14px; background: #12211b; }
+    .link { fill: none; stroke: #48695a; stroke-width: 2.2px; }
+    .node circle { stroke: #dceee3; stroke-width: 2px; cursor: pointer; }
+    .node text { fill: #e7f2eb; font-size: 13px; pointer-events: none; }
+    #details { margin-top: 16px; min-height: 70px; padding: 16px; border-radius: 12px; background: #183025; }
+    #details strong { color: #80dbac; }
+    .hint { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Clone lineage: D3.js prototype</h1>
+    <p>Click a clone to inspect its placeholder mutation, population share, and phenotype.</p>
+    <div id="chart" aria-label="Interactive clone lineage tree"></div>
+    <div id="details" aria-live="polite"><strong>Root clone</strong><br>Click any node in the tree.</div>
+    <p class="hint">This is a standalone HTML file. Open it in Cursor’s browser/preview; it requires no local server.</p>
+  </main>
+  <script>
+    const lineage = {
+      name: "Founder", mutation: "TP53 p.R175H", population: "100%", phenotype: "Baseline",
+      children: [
+        { name: "Clone A", mutation: "KRAS p.G12D", population: "48%", phenotype: "Rapid growth", children: [
+          { name: "A1", mutation: "PIK3CA p.H1047R", population: "28%", phenotype: "Drug resistant" },
+          { name: "A2", mutation: "SMAD4 loss", population: "20%", phenotype: "Invasive" }
+        ]},
+        { name: "Clone B", mutation: "EGFR amplification", population: "34%", phenotype: "Growth-factor driven", children: [
+          { name: "B1", mutation: "MET amplification", population: "14%", phenotype: "Metastatic potential" }
+        ]},
+        { name: "Clone C", mutation: "No additional driver", population: "18%", phenotype: "Slow growth" }
+      ]
+    };
+
+    const colors = { Founder: "#58bf88", "Clone A": "#e79f61", "Clone B": "#729dd8", "Clone C": "#bb8cde", A1: "#e9ca70", A2: "#db7b8d", B1: "#70c9c2" };
+    const width = 1000, height = 540;
+    const root = d3.hierarchy(lineage);
+    d3.tree().size([width - 190, height - 140])(root);
+    const svg = d3.select("#chart").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
+    const canvas = svg.append("g").attr("transform", "translate(80,55)");
+    canvas.selectAll("path").data(root.links()).join("path").attr("class", "link")
+      .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y));
+    const nodes = canvas.selectAll("g").data(root.descendants()).join("g").attr("class", "node")
+      .attr("transform", d => `translate(${d.x},${d.y})`).on("click", (_, d) => showDetails(d.data));
+    nodes.append("circle").attr("r", 23).attr("fill", d => colors[d.data.name] || "#58bf88");
+    nodes.append("text").attr("text-anchor", "middle").attr("dy", 46).text(d => d.data.name);
+    function showDetails(clone) {
+      document.querySelector("#details").innerHTML = `<strong>${clone.name}</strong><br>Mutation: ${clone.mutation}<br>Population: ${clone.population} · Phenotype: ${clone.phenotype}`;
+    }
+  </script>
+</body>
+</html>

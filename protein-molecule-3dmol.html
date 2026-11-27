@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3Dmol.js — molecular structure test</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #0d1714; color: #e7f2eb; }
+    main { max-width: 1100px; margin: auto; padding: 24px; }
+    h1 { margin-bottom: 8px; font-size: 1.7rem; }
+    p { color: #afc5b8; line-height: 1.5; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 20px 0; }
+    button, select { padding: 8px 12px; background: #183025; color: #e7f2eb; border: 1px solid #48695a; border-radius: 8px; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input { accent-color: #80dbac; }
+    #molecule { position: relative; height: min(62vh, 580px); min-height: 340px; border: 1px solid #2b4539; border-radius: 14px; overflow: hidden; }
+    #details { padding: 16px; margin-top: 16px; border-radius: 12px; background: #183025; min-height: 60px; }
+    #details strong { color: #80dbac; }
+    #status { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Molecular structure · 3Dmol.js</h1>
+    <p>Drag to rotate, scroll to zoom, and click an atom to inspect it. Grey: carbon · blue: nitrogen · red: oxygen · pink: selected residue.</p>
+    <div class="controls">
+      <label>Style <select id="style"><option value="ball">Ball and stick</option><option value="stick">Sticks</option><option value="sphere">Space-filling</option></select></label>
+      <label>Residue <select id="residue"><option value="">None</option></select></label>
+      <label><input id="spin" type="checkbox"> Auto-rotate</label>
+      <button id="mutation" type="button">Inspect demo mutation</button>
+      <button id="reset" type="button">Reset view</button>
+    </div>
+    <div id="molecule" aria-label="Interactive molecular structure"></div>
+    <div id="details" aria-live="polite">Select an atom or residue to see its placeholder properties.</div>
+    <p id="status" role="status">Loading 3Dmol.js…</p>
+    <p>Invented 24-residue backbone with 96 atoms and explicit bonds. This schematic omits side chains and hydrogens; its geometry and demo mutation are not experimental or predicted protein data.</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/3dmol@2.5.5/build/3Dmol-min.js" onerror="document.getElementById('status').textContent='Unable to download 3Dmol.js. Check internet access and preview script permissions.'"></script>
+  <script>
+    const host = document.getElementById('molecule');
+    const status = document.getElementById('status');
+    const styleControl = document.getElementById('style');
+    const residueControl = document.getElementById('residue');
+    const spinControl = document.getElementById('spin');
+    const details = document.getElementById('details');
+    if (window.$3Dmol) {
+      try {
+        const viewer = $3Dmol.createViewer(host, { backgroundColor: '#12211b', antialias: true });
+        // Deterministic schematic backbone, generated locally with no dataset downloads.
+        const residues = ['ALA', 'GLY', 'SER', 'VAL', 'LEU', 'THR', 'ALA', 'LYS', 'GLU', 'GLY', 'SER', 'ARG', 'ALA', 'LEU', 'ASP', 'VAL', 'GLY', 'THR', 'ALA', 'LYS', 'SER', 'GLU', 'LEU', 'GLY'];
+        const atoms = [];
+        function point(t) { return { x: 2.3 * Math.cos(t), y: 2.3 * Math.sin(t), z: t * 1.5 / (100 * Math.PI / 180) - 17.25 }; }
+        residues.forEach((resn, i) => {
+          const angle = i * 100 * Math.PI / 180;
+          const offsets = [-0.35, 0, 0.35, 0.45];
+          ['N', 'CA', 'C', 'O'].forEach((atom, j) => {
+            const position = point(angle + offsets[j]);
+            if (atom === 'O') { position.x += Math.cos(angle) * 0.9; position.y += Math.sin(angle) * 0.9; }
+            atoms.push({ ...position, atom, elem: atom === 'CA' ? 'C' : atom, resn, resi: i + 1, chain: 'A', serial: atoms.length + 1, bonds: [], bondOrder: [] });
+          });
+          residueControl.add(new Option((i + 1) + ' · ' + resn, String(i + 1)));
+        });
+        function bond(a, b, order = 1) {
+          atoms[a].bonds.push(b); atoms[a].bondOrder.push(order);
+          atoms[b].bonds.push(a); atoms[b].bondOrder.push(order);
+        }
+        for (let i = 0; i < residues.length; i++) {
+          const n = i * 4;
+          bond(n, n + 1); bond(n + 1, n + 2); bond(n + 2, n + 3, 2);
+          if (i < residues.length - 1) bond(n + 2, n + 4);
+        }
+        const model = viewer.addModel();
+        model.addAtoms(atoms);
+        let selectedResidue = null;
+        function renderStyle() {
+          const styles = {
+            ball: { stick: { radius: 0.16 }, sphere: { scale: 0.25 } },
+            stick: { stick: { radius: 0.24 } },
+            sphere: { sphere: { scale: 0.85 } }
+          };
+          viewer.setStyle({}, styles[styleControl.value]);
+          viewer.removeAllLabels();
+          if (selectedResidue !== null) {
+            viewer.addStyle({ resi: selectedResidue }, { sphere: { color: '#f28bc4', scale: styleControl.value === 'sphere' ? 0.9 : 0.4 } });
+            const ca = atoms[(selectedResidue - 1) * 4 + 1];
+            viewer.addLabel(ca.resn + ' ' + selectedResidue, { position: ca, fontSize: 14, fontColor: 'white', backgroundColor: '#183025' });
+          }
+          viewer.render();
+        }
+        function inspect(resi, atom = null) {
+          selectedResidue = resi;
+          residueControl.value = resi === null ? '' : String(resi);
+          if (resi === null) { details.textContent = 'Select an atom or residue to see its placeholder properties.'; }
+          else {
+            const heading = document.createElement('strong');
+            heading.textContent = residues[resi - 1] + ' ' + resi + ' · Chain A';
+            const text = (atom ? 'Atom ' + atom.atom + ' · element ' + atom.elem + '. ' : 'Residue selected. ') + (resi === 12 ? 'Demo mutation R12H: annotation only; the structure is not changed or modelled.' : 'Invented backbone coordinates for visualization testing.');
+            details.replaceChildren(heading, document.createElement('br'), document.createTextNode(text));
+          }
+          renderStyle();
+        }
+        viewer.setClickable({}, true, (atom) => inspect(atom.resi, atom));
+        residueControl.addEventListener('change', () => inspect(residueControl.value === '' ? null : Number(residueControl.value)));
+        styleControl.addEventListener('change', renderStyle);
+        spinControl.addEventListener('change', () => viewer.spin('y', spinControl.checked ? 1 : 0));
+        document.getElementById('mutation').addEventListener('click', () => inspect(12));
+        viewer.zoomTo(); viewer.rotate(65, 'y'); viewer.render();
+        const initialView = viewer.getView().slice();
+        document.getElementById('reset').addEventListener('click', () => {
+          viewer.spin(false); spinControl.checked = false; styleControl.value = 'ball';
+          viewer.setView(initialView.slice()); inspect(null);
+        });
+        new ResizeObserver(() => { viewer.resize(); viewer.render(); }).observe(host);
+        renderStyle();
+        status.textContent = 'Ready · 96 atoms · drag to rotate, scroll to zoom, click to inspect.';
+      } catch (error) {
+        status.textContent = 'Unable to create the molecular view: ' + error.message;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

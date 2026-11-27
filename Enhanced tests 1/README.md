@@ -34,4 +34,16 @@ Click a sequence residue or the 3D protein to link the inspector and selection. 
 
 References: [Mol* viewer guide](https://molstar.org/viewer-docs/), [plugin setup](https://molstar.org/docs/v5/plugin/instance/), and [selection model](https://molstar.org/docs/v5/plugin/selections/).
 
-Remaining modules will be created separately after each preceding PR is tested and merged: environmental input/response sliders, population Müller plot, and multiscale genomic tracks.
+## 04 — Environmental input and response
+
+Open `04-environment-explorer.html` in Cursor using the same HTML preview workflow. Pinned React 18.3.1 and Plotly.js 2.35.2 load from CDNs; internet and JavaScript are required. No localhost, build, or WebGL is needed.
+
+Continuously adjust oxygen availability, nutrients, drug exposure, and pH. The dashboard updates four clone-share cards, current/reference time curves, grouped comparison bars, a population-composition area chart, and a trait-change heatmap. Use the observation-day slider or Play/Pause to inspect the demonstration timeline. Click clone cards, curves, bars, or heatmap rows to emphasise a clone; Show all clones clears this emphasis. Plotly controls provide hover, zoom, pan, and chart PNG export.
+
+Set current inputs as reference captures an independent comparison input set; subsequent edits compare against it at the same day. Differences are percentage points (population shares) or arbitrary score points (traits). Pinning the current inputs makes all differences zero. Reset dashboard restores inputs, reference, observation day, selection, and reference-curve visibility. Download response CSV includes all 61 demonstration days and both input settings in metadata comments.
+
+The response calculation uses arbitrary coefficients and normalised exponential weights strictly to test the UI. It is not fitted, calibrated, or biologically validated; time and environmental labels do not imply measurements or treatment predictions. The composition chart is an ordinary stacked area plot and does not represent ancestry. Reference curves use the same invented response function with the saved reference inputs.
+
+References: [Plotly updates](https://plotly.com/javascript/plotlyjs-function-reference/), [stacked area charts](https://plotly.com/javascript/filled-area-plots/), and [React integration](https://plotly.com/javascript/react/).
+
+Remaining modules will be created separately after each preceding PR is tested and merged: population Müller plot and multiscale genomic tracks.

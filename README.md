@@ -13,3 +13,7 @@ Open `clone-population-d3.html` to compare simulated clone population shares acr
 ## PR 3 — mutation order
 
 Open `mutation-order-d3.html` to inspect a simulated clone's mutations in inferred evolutionary order. Click a marker for its biological interpretation.
+
+## PR 4 — environmental effects
+
+Open `environment-effects-d3.html` to adjust placeholder oxygen, drug exposure, and acidity values and compare clone fitness.

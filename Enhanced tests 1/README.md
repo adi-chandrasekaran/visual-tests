@@ -56,4 +56,18 @@ Try relative/absolute scaling, clone selection from bands/legend/table/ancestry 
 
 Every parent link, emergence event, and abundance trajectory is deterministic invented data, not reconstructed evolution. References: [ggmuller methodology](https://cran.r-project.org/web/packages/ggmuller/vignettes/ggmuller.html), [D3 areas](https://d3js.org/d3-shape/area), and [D3 brushing](https://d3js.org/d3-brush).
 
-The final module, multiscale genomic tracks, will be created after this PR is tested and merged.
+## 06 — Multiscale genomic atlas
+
+Open `06-genomic-explorer.html` in Cursor with the same HTML preview workflow. Pinned Gosling.js 0.11.0, HiGlass 1.13.4, PixiJS 6.5.10 and React 18.3.1 load through browser import maps/CDNs. Internet access, JavaScript modules and WebGL are required. No localhost, npm installation or build step is needed.
+
+The independent atlas contains a four-chromosome synthetic assembly (3.4 Mb), 16 invented genes with 64 exons, 24 clone-associated variants, 480 coarse signal bins and eight within-chromosome relationship arcs. A custom SVG circular overview also shows one invented cross-chromosome connection. Gosling renders linked linear gene/exon, variant, coverage, heatmap and relationship tracks. The overview's signal ring and location indicator update with navigation; the sequence lens displays 60 generated bases centred on the current single-chromosome viewport. Whole-genome mode uses a labelled example locus for the sequence lens until you choose a chromosome.
+
+Try clicking a chromosome, Whole genome, searching `DEMO5` or `chr2:100000-200000`, pan/zoom buttons, wheel zoom and drag panning, gene shortcuts, track-layer switches, Reset atlas, and clicking a variant catalogue row. Hover or click plotted genes and variant points to inspect them. Select a variant row, then **Zoom tracks to these bases** to inspect the single-base locus and its underlined variant in the sequence lens. Clicking a base opens its nucleotide or variant annotation. The sequence lens is generated HTML linked to Gosling's viewport, not an externally fetched reference-sequence track. Signal bins remain coarse when zoomed in; zooming does not create additional signal resolution.
+
+UI coordinates and variant positions are 1-based inclusive. Gene, exon and signal intervals use 0-based half-open boundaries internally and in JSON exports; the UI inspector converts gene starts to 1-based coordinates. Event order and sampling day are separate variant metadata, never the genomic x-axis. Sorting the catalogue by event order does not rearrange the genome. Coverage and signal scores are arbitrary demo units, not measured sequencing depth or expression. All bases, alleles, genes, links, clone associations and time annotations are invented and unvalidated.
+
+Download tracks PNG exports the current Gosling canvas (not surrounding HTML controls, overview or sequence panel). Download locus JSON includes viewport coordinates, coordinate conventions, visible gene/variant records and the 60-base sequence lens. The original prototypes, combined application and previous enhanced HTML files remain unchanged.
+
+References: [Gosling embedding](https://gosling-lang.org/docs/usage/), [composition](https://gosling-lang.org/docs/composition/), [inline data](https://gosling-lang.org/docs/data/) and [JavaScript API](https://gosling-lang.org/docs/js-api/). The browser module is pinned to the documented 0.11.0 embedding release; the current documentation may include newer features.
+
+All six enhanced experiments now have separate standalone code files. They are not integrated into the original combined application.

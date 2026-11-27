@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale · Enhanced visualization lab</title>
+  <style>
+    :root { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #29414a; background: #edf2f2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #102f36; color: white; padding: 20px 24px 17px; }
+    .heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .eyebrow { color: #8bc8bb; font-size: 10px; letter-spacing: 2px; }
+    h1 { font-size: 23px; font-weight: 600; margin: 7px 0; }
+    header p { color: #bfd2d5; font-size: 12px; line-height: 1.6; margin: 0; }
+    .badge { font-size: 11px; border: 1px solid #537077; border-radius: 20px; padding: 7px 12px; white-space: nowrap; color: #c1e2d9; }
+    #tabs { display: flex; flex-wrap: wrap; gap: 7px; padding: 13px 20px; background: white; border-bottom: 1px solid #d5e1e4; }
+    button, a { font: inherit; }
+    button { cursor: pointer; }
+    [role="tab"] { display: flex; align-items: center; gap: 9px; border: 1px solid #d5e1e4; border-radius: 7px; background: #f6f9f9; padding: 10px 12px; color: #456069; font-size: 12px; }
+    [role="tab"] .number { font-size: 10px; color: #7b949b; }
+    [role="tab"]:hover { border-color: #328e80; }
+    [role="tab"][aria-selected="true"] { background: #157d72; border-color: #157d72; color: white; }
+    [role="tab"][aria-selected="true"] .number { color: #bce4d9; }
+    button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #70b9aa; outline-offset: 3px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 22px; background: #f5f8f8; border-bottom: 1px solid #d5e1e4; }
+    .current { min-width: 0; }
+    #current { font-size: 12px; font-weight: 600; }
+    #load-status { font-size: 11px; color: #6c848b; margin-top: 4px; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    .actions button { border: 1px solid #cbdadd; background: white; border-radius: 6px; padding: 7px 10px; color: #345a62; font-size: 12px; }
+    a { color: #157d72; font-size: 12px; text-underline-offset: 3px; }
+    details { font-size: 11px; padding: 8px 22px; background: white; color: #647d84; border-bottom: 1px solid #d5e1e4; }
+    summary { cursor: pointer; width: fit-content; }
+    details p { margin: 8px 0; max-width: 980px; line-height: 1.6; }
+    code { color: #375f68; }
+    #views { position: relative; height: max(780px, calc(100dvh - 280px)); background: #edf2f2; }
+    /* Keep real layout dimensions for responsive plots and WebGL cameras.
+       Do not use display:none: hidden panels retain their document and state. */
+    .view { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
+    .view.active { visibility: visible; pointer-events: auto; }
+    iframe { display: block; border: 0; width: 100%; height: 100%; background: #edf2f2; }
+    #standalone-list { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+    noscript p { padding: 20px; }
+    @media (max-width: 700px) {
+      header { padding: 18px 16px; }
+      h1 { font-size: 20px; }
+      .badge { display: none; }
+      #tabs { padding: 10px; gap: 6px; }
+      [role="tab"] { flex: 1 1 30%; justify-content: center; padding: 9px 7px; font-size: 11px; gap: 5px; }
+      .toolbar { padding: 10px 14px; }
+      .actions { gap: 10px; }
+      details { padding: 8px 14px; }
+      #views { height: max(780px, calc(100dvh - 360px)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="heading">
+      <div><span class="eyebrow">BIOSCALE · ENHANCED TESTS 1</span><h1>One lab. Six perspectives.</h1></div>
+      <span class="badge">6 INDEPENDENT MODULES</span>
+    </div>
+    <p>The full standalone explorers, together in one workspace. All biological content remains invented placeholder data.</p>
+  </header>
+  <nav id="tabs" role="tablist" aria-label="Enhanced visualization modules"></nav>
+  <section class="toolbar" aria-label="Current module and actions">
+    <div class="current"><div id="current"></div><div id="load-status" role="status" aria-live="polite"></div></div>
+    <div class="actions">
+      <button id="reload" type="button" title="Reload this module from its saved source file. This resets only this module.">Reload current view ↻</button>
+      <a id="standalone" target="_blank" rel="noopener">Open individually ↗</a>
+    </div>
+  </section>
+  <details>
+    <summary>Saved edits, individual files &amp; preview requirements</summary>
+    <p>Each tab loads its actual HTML file from <code>Enhanced tests 1/</code>—nothing is copied into this launcher. Save edits to an individual file, then use <strong>Reload current view</strong> to see them here. It resets that view; other loaded tabs keep their selections, camera positions and scroll. Refreshing the whole application resets every tab. This launcher does not automatically watch the filesystem.</p>
+    <p>Modules load on their first visit and stay mounted afterwards. Background animations can continue in previously visited tabs. JavaScript, internet access for the existing CDN libraries, local HTML frames and WebGL must be allowed by your Cursor HTML preview. No local server or build step is needed. If a preview blocks local frames, use the individual files; the launcher cannot bypass that preview restriction.</p>
+    <div id="standalone-list" aria-label="Individual enhanced files"></div>
+  </details>
+  <main id="views" aria-label="Enhanced visualization workspace"></main>
+  <noscript><p>Enable JavaScript to use tabs, or open the six HTML files in Enhanced tests 1 individually.</p></noscript>
+  <script>
+    'use strict';
+    // Single source of truth: these are references, not snapshots or copied code.
+    // Separate documents preserve all controls and isolate library versions/styles.
+    const modules = [
+      { id: 'lineage', name: 'Phylogenetic lineage', tool: 'D3.js', file: '01-radial-lineage.html' },
+      { id: 'cell', name: '3D cellular structure', tool: 'React Three Fiber', file: '02-cellular-explorer.html' },
+      { id: 'molecule', name: 'Molecular structure', tool: 'Mol*', file: '03-molecular-explorer.html' },
+      { id: 'environment', name: 'Environmental response', tool: 'React + Plotly.js', file: '04-environment-explorer.html' },
+      { id: 'population', name: 'Population evolution', tool: 'D3.js · Müller plot', file: '05-muller-explorer.html' },
+      { id: 'genomics', name: 'Genomic atlas', tool: 'Gosling.js', file: '06-genomic-explorer.html' }
+    ];
+    const tabs = document.getElementById('tabs');
+    const workspace = document.getElementById('views');
+    const standalone = document.getElementById('standalone');
+    const loadStatus = document.getElementById('load-status');
+    let activeModule;
+
+    modules.forEach((module, index) => {
+      module.url = 'Enhanced%20tests%201/' + module.file;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'tab-' + module.id;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-controls', 'panel-' + module.id);
+      const number = document.createElement('span');
+      number.className = 'number';
+      number.textContent = String(index + 1).padStart(2, '0');
+      number.setAttribute('aria-hidden', 'true');
+      button.append(number, document.createTextNode(module.name));
+      button.addEventListener('click', () => activate(module.id));
+      button.addEventListener('keydown', event => {
+        let next;
+        if (event.key === 'ArrowRight') next = (index + 1) % modules.length;
+        if (event.key === 'ArrowLeft') next = (index + modules.length - 1) % modules.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = modules.length - 1;
+        if (next === undefined) return;
+        event.preventDefault();
+        activate(modules[next].id);
+        modules[next].button.focus();
+      });
+      tabs.appendChild(button);
+      const panel = document.createElement('section');
+      panel.id = 'panel-' + module.id;
+      panel.className = 'view';
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', button.id);
+      workspace.appendChild(panel);
+      module.button = button;
+      module.panel = panel;
+      module.loadMessage = 'Not opened yet';
+      const link = document.createElement('a');
+      link.href = module.url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = module.file;
+      document.getElementById('standalone-list').appendChild(link);
+    });
+
+    function showLoadStatus(module) {
+      if (module === activeModule) loadStatus.textContent = module.loadMessage;
+    }
+
+    function activate(id, updateHash = true) {
+      const current = modules.find(module => module.id === id) || modules[0];
+      activeModule = current;
+      modules.forEach(module => {
+        const active = module === current;
+        module.button.setAttribute('aria-selected', String(active));
+        module.button.tabIndex = active ? 0 : -1;
+        module.panel.classList.toggle('active', active);
+        module.panel.setAttribute('aria-hidden', String(!active));
+        module.panel.inert = !active;
+      });
+      document.getElementById('current').textContent = current.name + ' · ' + current.tool;
+      standalone.href = current.url;
+      document.title = current.name + ' · BioScale enhanced lab';
+      if (!current.frame) {
+        current.loadMessage = 'Opening module…';
+        const frame = document.createElement('iframe');
+        frame.title = current.name + ' · ' + current.tool;
+        frame.allowFullscreen = true;
+        // No sandbox restrictions: keep native controls, downloads and module imports.
+        frame.addEventListener('load', () => {
+          // Cross-document access is deliberately unnecessary (file:// can be opaque).
+          current.loadMessage = 'Page loaded · library readiness appears inside the module';
+          showLoadStatus(current);
+        });
+        frame.addEventListener('error', () => {
+          current.loadMessage = 'Page could not load · check the path or open individually';
+          showLoadStatus(current);
+        });
+        current.frame = frame;
+        frame.src = current.url;
+        current.panel.appendChild(frame);
+      }
+      showLoadStatus(current);
+      if (updateHash && location.hash !== '#' + current.id) location.hash = current.id;
+    }
+
+    document.getElementById('reload').addEventListener('click', () => {
+      // A new URL reloads the saved HTML without reading/copying its source via fetch.
+      // This works with local file frames and does not depend on same-origin access.
+      activeModule.loadMessage = 'Reloading saved file…';
+      showLoadStatus(activeModule);
+      activeModule.frame.src = activeModule.url + '?reload=' + Date.now();
+    });
+    window.addEventListener('hashchange', () => activate(location.hash.slice(1), false));
+    activate(location.hash.slice(1), false);
+  </script>
+</body>
+</html>

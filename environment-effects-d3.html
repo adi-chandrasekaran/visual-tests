@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D3 environment effects prototype</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #0d1714; color: #e7f2eb; }
+    main { max-width: 1100px; margin: auto; padding: 28px; }
+    h1 { margin-bottom: 6px; font-size: 1.65rem; } p { color: #afc5b8; line-height: 1.5; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 16px; margin: 22px 0; }
+    label { display: grid; gap: 7px; color: #dceee3; } output, #details strong { color: #80dbac; font-weight: 700; } input { accent-color: #80dbac; }
+    #chart { border: 1px solid #2b4539; border-radius: 14px; background: #12211b; overflow: auto; } svg { display: block; }
+    .axis text { fill: #afc5b8; font-size: 12px; } .axis path, .axis line { stroke: #48695a; }
+    #details { min-height: 52px; padding: 16px; margin-top: 16px; border-radius: 12px; background: #183025; } .hint { font-size: .9rem; }
+    @media (max-width: 650px) { .controls { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Environmental effects: D3.js prototype</h1>
+    <p>Move the simulated microenvironment controls to compare the fitness of four clones.</p>
+    <section class="controls" aria-label="Environmental controls">
+      <label>Oxygen <output id="oxygen-value">60%</output><input id="oxygen" type="range" min="0" max="100" value="60"></label>
+      <label>Drug exposure <output id="drug-value">20%</output><input id="drug" type="range" min="0" max="100" value="20"></label>
+      <label>Acidity <output id="acidity-value">pH 6.8</output><input id="acidity" type="range" min="60" max="78" value="68"></label>
+    </section>
+    <div id="chart"></div>
+    <div id="details"><strong>Relative fitness</strong><br>Click a bar to inspect why the clone responds to the current environment.</div>
+    <p class="hint">Standalone HTML for direct opening from Cursor; no development server is needed.</p>
+  </main>
+  <script>
+    const clones = [
+      { id: "Clone A", color: "#e79f61", note: "KRAS-driven growth benefits from oxygen, but drug pressure reduces its fitness.", fitness: (o, d, a) => 28 + o * .34 - d * .37 + (a - 68) * 1.8 },
+      { id: "Clone B", color: "#729dd8", note: "EGFR-amplified clone remains moderately oxygen dependent.", fitness: (o, d, a) => 20 + o * .40 - d * .28 + (a - 68) * 1.1 },
+      { id: "Clone C", color: "#bb8cde", note: "Hypoxia-tolerant clone gains a relative advantage in low oxygen.", fitness: (o, d, a) => 60 - o * .30 - d * .12 - (a - 68) * 1.6 },
+      { id: "Clone D", color: "#70c9c2", note: "PI3K-driven clone is comparatively drug tolerant.", fitness: (o, d, a) => 25 + o * .16 - d * .08 - (a - 68) * .5 }
+    ];
+    const width = 1000, height = 460, margin = { top: 45, right: 45, bottom: 75, left: 72 };
+    const x = d3.scaleBand().domain(clones.map((d) => d.id)).range([margin.left, width - margin.right]).padding(.3);
+    const y = d3.scaleLinear().domain([0, 100]).range([height - margin.bottom, margin.top]);
+    const svg = d3.select("#chart").append("svg").attr("viewBox", "0 0 " + width + " " + height).attr("width", width).attr("height", height);
+    svg.append("g").attr("class", "axis").attr("transform", "translate(0," + (height - margin.bottom) + ")").call(d3.axisBottom(x));
+    svg.append("g").attr("class", "axis").attr("transform", "translate(" + margin.left + ",0)").call(d3.axisLeft(y).ticks(5).tickFormat((d) => d + "%"));
+    svg.append("text").attr("x", margin.left).attr("y", 22).attr("fill", "#afc5b8").attr("font-size", 14).text("Relative clone fitness");
+    const bars = svg.append("g").selectAll("rect").data(clones).join("rect").attr("rx", 8).attr("x", (d) => x(d.id)).attr("width", x.bandwidth()).attr("fill", (d) => d.color).style("cursor", "pointer");
+    bars.on("click", (_, clone) => document.querySelector("#details").innerHTML = "<strong>" + clone.id + "</strong><br>" + clone.note);
+    function conditions() { return { oxygen: +oxygen.value, drug: +drug.value, acidity: +acidity.value }; }
+    function render() {
+      const { oxygen: o, drug: d, acidity: a } = conditions();
+      document.querySelector("#oxygen-value").value = o + "%"; document.querySelector("#drug-value").value = d + "%"; document.querySelector("#acidity-value").value = "pH " + (a / 10).toFixed(1);
+      bars.transition().duration(180).attr("y", (clone) => y(Math.max(0, Math.min(100, clone.fitness(o, d, a))))).attr("height", (clone) => y(0) - y(Math.max(0, Math.min(100, clone.fitness(o, d, a)))));
+    }
+    [oxygen, drug, acidity].forEach((control) => control.addEventListener("input", render)); render();
+  </script>
+</body>
+</html>

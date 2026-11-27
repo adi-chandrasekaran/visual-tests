@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale Atlas · Cellular explorer</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #29414a; background: #edf2f2; --accent: #177d72; }
+    * { box-sizing: border-box; } body { margin: 0; } button, input, select { font: inherit; }
+    button, select { border: 1px solid #ccdadc; border-radius: 7px; background: white; color: #29414a; padding: 8px 11px; }
+    button { cursor: pointer; } button:hover { border-color: var(--accent); background: #f0f8f5; }
+    :focus-visible { outline: 3px solid #48ad99; outline-offset: 3px; } input { accent-color: var(--accent); }
+    header { padding: 24px 30px; background: #102f36; color: white; }
+    .eyebrow { color: #8bc8bb; font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+    h1 { margin: 7px 0; font-size: clamp(23px, 2.5vw, 34px); font-weight: 600; letter-spacing: -.7px; }
+    header p { margin: 0; font-size: 13px; color: #bed2d6; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: white; border-bottom: 1px solid #d4e1e3; }
+    .toolbar label { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }
+    .toolbar .note { color: #658089; font-size: 11px; margin-left: auto; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; padding: 20px; align-items: start; }
+    .card { border: 1px solid #d5e1e4; border-radius: 11px; background: white; overflow: hidden; }
+    .figure-header { padding: 16px 20px; border-bottom: 1px solid #e3ebed; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; }
+    .figure-header small { color: #6a828b; } .figure-header button { padding: 5px 10px; }
+    #viewport { position: relative; height: clamp(550px, 70vh, 840px); background: #f6f8fa; }
+    #canvas-host { width: 100%; height: 100%; } canvas { display: block; touch-action: none; }
+    .overlay { position: absolute; pointer-events: none; z-index: 2; }
+    .orientation { left: 20px; bottom: 20px; color: #67818b; font: 10px system-ui; line-height: 1.8; }
+    .orientation b { display: block; color: #344f59; font-size: 12px; }
+    #hover { top: 18px; left: 20px; background: #fffdf0e6; border: 1px solid #e1dfcb; border-radius: 6px; padding: 7px 10px; color: #486068; font-size: 11px; }
+    #label-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .structure-label { position: absolute; font-size: 10px; font-weight: 700; letter-spacing: .8px; background: #ffffffde; padding: 4px 7px; border-left: 3px solid var(--color); border-radius: 2px; box-shadow: 0 1px 7px #15313a12; white-space: nowrap; }
+    .figure-footer { padding: 12px 20px; border-top: 1px solid #e3ebed; font-size: 11px; line-height: 1.6; color: #67818b; }
+    aside { display: grid; gap: 14px; } aside section { padding: 17px; }
+    h2 { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #6c858c; margin: 0 0 13px; }
+    h3 { font-size: 22px; margin: 0 0 8px; font-weight: 600; }
+    p { line-height: 1.65; } .muted { color: #69818a; font-size: 12px; margin: 6px 0; }
+    .metric { background: #f0f6f5; padding: 10px 12px; border-radius: 7px; font-size: 11px; line-height: 1.8; margin: 13px 0; }
+    .layer-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 8px; margin: 11px 0; font-size: 12px; }
+    .layer-row button { padding: 4px 7px; font-size: 10px; } .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+    .control { display: grid; gap: 7px; margin-top: 14px; font-size: 12px; }
+    .control .caption { display: flex; justify-content: space-between; align-items: center; } output { color: var(--accent); font-size: 11px; }
+    .control input { width: 100%; } .inline { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .button-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; } .button-row button { font-size: 11px; }
+    #status { font-size: 11px; color: #647f87; padding: 0 24px 20px; }
+    @media (min-width: 1650px) { .workspace { max-width: 1650px; margin: auto; } }
+    @media (max-width: 950px) { .workspace { grid-template-columns: 1fr; padding: 12px; } aside { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+    @media (max-width: 540px) { header { padding: 20px; } aside { grid-template-columns: 1fr; } #viewport { height: 500px; } .toolbar { padding: 12px; } }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "react": "https://esm.sh/react@18.3.1",
+      "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime?external=react",
+      "react-dom": "https://esm.sh/react-dom@18.3.1?external=react",
+      "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+      "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.17.10?external=react,react-dom,three",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <header><div class="eyebrow">BIOSCALE / ENHANCED TESTS 02</div><h1>Cellular spatial explorer</h1><p>Navigate a layered cell interior. Isolate structures, tune transparency, and slice through the model.</p></header>
+  <div id="app"></div>
+  <p id="status" role="status">Loading React Three Fiber… Internet access and WebGL are required.</p>
+  <script>
+    window.addEventListener('error', () => { document.getElementById('status').textContent = 'The explorer could not load. Check internet access, preview script permissions, and WebGL support.'; });
+    window.addEventListener('unhandledrejection', event => { document.getElementById('status').textContent = 'Unable to load the explorer: ' + event.reason; });
+  </script>
+  <script type="module">
+    import React, { useState, useMemo, useEffect, useRef } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { Canvas, useThree, useFrame } from '@react-three/fiber';
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const h = React.createElement;
+    const structures = [
+      { id: 'membrane', name: 'Cell membrane', color: '#72ac9e', count: 1, centre: [0,0,0], note: 'Irregular outer envelope encloses the cell. Lower opacity reveals overlapping internal structures.', detail: 'Boundary surface · procedural mesh' },
+      { id: 'nucleus', name: 'Nucleus', color: '#6e91c6', count: 1, centre: [-.5,.45,0], note: 'Central nuclear envelope with pore rings and an internal nucleolus. The purple surrounding network is a separate ER layer.', detail: 'Nuclear envelope + 48 pore markers + nucleolus' },
+      { id: 'er', name: 'Endoplasmic reticulum', color: '#ac70aa', count: 24, centre: [-1.7,.25,1.3], note: 'A winding network wraps around the nucleus. Individual tubes create a distinguishable, layered interior.', detail: '24 procedural tubular paths' },
+      { id: 'mitochondria', name: 'Mitochondria', color: '#d69147', count: 12, centre: [3.5,.2,1.8], note: 'Elongated organelles distributed around the nucleus. Each has an outer shell and folded internal cristae.', detail: '12 shells with internal fold geometry' },
+      { id: 'golgi', name: 'Golgi apparatus', color: '#d485a0', count: 7, centre: [2.6,.65,-.5], note: 'Stacked curved cisternae form a distinct layered structure near the nucleus.', detail: '7 curved, flattened cisternae' },
+      { id: 'cytoskeleton', name: 'Cytoskeleton', color: '#c3ab3e', count: 36, centre: [0,-.7,2.8], note: 'Long curved filaments span the cell and provide spatial context around organelles.', detail: '36 deterministic filament paths' },
+      { id: 'vesicles', name: 'Vesicles', color: '#52a99c', count: 30, centre: [-3.3,.4,-1.3], note: 'Small transport compartments distributed through the cytoplasm.', detail: '30 spherical compartments' }
+    ];
+    const defaults = () => Object.fromEntries(structures.map(s => [s.id, true]));
+    // Geometry is invented and deterministic. No segmented microscopy or calibrated biology.
+    function makeCell() {
+      const root = new THREE.Group();
+      const groups = {};
+      const material = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: .52, metalness: .02, side: THREE.DoubleSide, ...extra });
+      const sphere = new THREE.SphereGeometry(1, 36, 24);
+      function mesh(parent, geometry, mat, position = [0,0,0], scale = [1,1,1]) {
+        const object = new THREE.Mesh(geometry, mat); object.position.set(...position); object.scale.set(...scale); object.castShadow = true; object.receiveShadow = true; parent.add(object); return object;
+      }
+      function tube(parent, points, radius, mat) { return mesh(parent, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 72, radius, 6, false), mat); }
+      structures.forEach(s => { const group = new THREE.Group(); group.name = s.id; group.userData.structure = s.id; root.add(group); groups[s.id] = group; });
+      const membraneGeo = new THREE.SphereGeometry(1, 100, 64);
+      const positions = membraneGeo.attributes.position;
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+        const angle = Math.atan2(z,x), ripple = 1 + .07 * Math.sin(angle * 5) * (1 - y*y) + .035 * Math.cos(angle * 9 + y * 4);
+        positions.setXYZ(i, x * 5.9 * ripple, y * 2.05 * (1 + .1 * Math.sin(angle * 3)), z * 4.25 * ripple);
+      }
+      membraneGeo.computeVertexNormals();
+      mesh(groups.membrane, membraneGeo, material('#72ac9e', { transparent: true, opacity: .12, depthWrite: false }));
+      mesh(groups.nucleus, sphere, material('#7194c6', { transparent: true, opacity: .92 }), [-.5,.45,0], [1.8,1.45,1.65]);
+      mesh(groups.nucleus, sphere, material('#506a9e'), [-.85,.8,.25], [.52,.44,.48]);
+      for (let i=0; i<48; i++) {
+        const y = 1 - 2 * (i + .5) / 48, theta = i * 2.399963, r = Math.sqrt(1-y*y);
+        const normal = new THREE.Vector3(r*Math.cos(theta), y, r*Math.sin(theta));
+        const pore = mesh(groups.nucleus, new THREE.TorusGeometry(.085,.022,6,12), material('#c1cce7'), [-.5 + normal.x*1.81,.45 + normal.y*1.46,normal.z*1.66]);
+        pore.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), normal);
+      }
+      const erMat = material('#ac70aa');
+      for (let k=0; k<24; k++) {
+        const points = [];
+        for (let j=0; j<=80; j++) {
+          const t = j/80 * Math.PI * 1.65 + k * .39, r = 2.05 + (k%6)*.20 + .22*Math.sin(t*4+k);
+          points.push(new THREE.Vector3(-.5+r*Math.cos(t), -.95 + Math.floor(k/6)*.55 + .22*Math.sin(t*3+k), r*.83*Math.sin(t)));
+        }
+        tube(groups.er, points, .052, erMat);
+      }
+      for (let i=0; i<12; i++) {
+        const a = i/12*Math.PI*2 + .18, sub = new THREE.Group();
+        sub.position.set(4.05*Math.cos(a), -.15+.55*Math.sin(a*3), 2.9*Math.sin(a)); sub.rotation.y = -a+.5; sub.rotation.z=.25*Math.sin(a); groups.mitochondria.add(sub);
+        mesh(sub, sphere, material('#d8a055', { transparent: true, opacity: .48, depthWrite: false }), [0,0,0], [.77,.33,.39]);
+        const folds = [];
+        for (let j=0; j<=60; j++) { const t = j/60; folds.push(new THREE.Vector3((t-.5)*1.25, .18*Math.sin(t*Math.PI*12), .13*Math.cos(t*Math.PI*12))); }
+        tube(sub, folds, .04, material('#a26630'));
+      }
+      const golgiMat = material('#d485a0');
+      for(let k=0;k<7;k++) {
+        const points=[];
+        for(let j=0;j<=36;j++) { const t=j/36*Math.PI*1.3-.65*Math.PI; points.push(new THREE.Vector3(2.55+.62*Math.cos(t), -.5+k*.19, -.5+1.05*Math.sin(t))); }
+        const object=tube(groups.golgi,points,.16,golgiMat); object.scale.y=.55;
+      }
+      const cytoMat=material('#c3ab3e');
+      for(let k=0;k<36;k++) {
+        const a=k/36*Math.PI*2, points=[];
+        for(let j=0;j<=26;j++) { const t=j/26, theta=a+(t-.5)*1.1; const r=1.4+t*3.8; points.push(new THREE.Vector3(r*Math.cos(theta), -1.25+.42*Math.sin(t*5+k), r*.69*Math.sin(theta))); }
+        tube(groups.cytoskeleton,points,.028,cytoMat);
+      }
+      const vesicleMat=material('#52a99c');
+      for(let k=0;k<30;k++) {
+        const a=k*2.39996, r=2.6+(k%5)*.39, size=.09+(k%4)*.028;
+        mesh(groups.vesicles,sphere,vesicleMat,[r*Math.cos(a),-.65+(k%5)*.32,r*.69*Math.sin(a)],[size,size,size]);
+      }
+      return { root, groups };
+    }
+    function Navigation({ spin, reset, focus }) {
+      const { camera, gl } = useThree();
+      const orbit = useMemo(() => new OrbitControls(camera,gl.domElement),[camera,gl]);
+      useEffect(() => { orbit.enableDamping=true; orbit.minDistance=5; orbit.maxDistance=30; orbit.maxPolarAngle=Math.PI*.88; return () => orbit.dispose(); },[orbit]);
+      useEffect(() => { orbit.autoRotate=spin; orbit.autoRotateSpeed=.65; },[spin,orbit]);
+      useEffect(() => { camera.position.set(11,9,13); orbit.target.set(0,0,0); orbit.update(); },[reset,orbit,camera]);
+      useEffect(() => { if (!focus) return; const target = structures.find(s=>s.id===focus.id).centre; orbit.target.set(...target); camera.position.set(target[0]+6,target[1]+4,target[2]+7); orbit.update(); },[focus,orbit,camera]);
+      useFrame(()=>orbit.update()); return null;
+    }
+    function Cell({ visible, opacity, clip, cut, axis, selected, exploded, setSelected, setHover, reset, focus, spin, labels }) {
+      const { root,groups }=useMemo(makeCell,[]);
+      const clipping=useMemo(()=>new THREE.Plane(),[]);
+      const { camera, gl }=useThree();
+      useEffect(()=>{
+        clipping.normal.set(axis==='x'?-1:0,axis==='y'?-1:0,axis==='z'?-1:0); clipping.constant=cut;
+        structures.forEach(s=>{
+          const group=groups[s.id]; group.visible=visible[s.id];
+          const factor=exploded/100;
+          const dir=new THREE.Vector3(...s.centre); if(s.id==='membrane') dir.set(0,0,0); group.position.copy(dir.multiplyScalar(factor*.7));
+          group.traverse(object=>{ if(!object.isMesh)return;
+            object.material.clippingPlanes=clip?[clipping]:[]; object.material.clipShadows=true;
+            object.material.emissive.set(s.id===selected?'#35262b':'#000000'); object.material.emissiveIntensity=.24;
+            if(s.id==='membrane') object.material.opacity=opacity/100;
+            object.material.needsUpdate=true;
+          });
+        });
+      },[visible,opacity,clip,cut,axis,selected,exploded,groups,clipping]);
+      useEffect(()=>{
+        document.getElementById('status').textContent='Ready · React Three Fiber · 7 independently controlled structure layers · synthetic geometry';
+      },[]);
+      useFrame(()=>{
+        structures.forEach(s=>{
+          const label=document.getElementById('label-'+s.id); if(!label)return;
+          const p=new THREE.Vector3(...s.centre).add(groups[s.id].position).project(camera);
+          const show=labels&&visible[s.id]&&s.id!=='membrane'&&p.z<1&&(!clip||s.centre[axis==='x'?0:axis==='y'?1:2]+groups[s.id].position[axis]<=cut);
+          label.style.display=show?'block':'none';
+          label.style.transform='translate('+((p.x*.5+.5)*gl.domElement.clientWidth+12)+'px,'+((-p.y*.5+.5)*gl.domElement.clientHeight-12)+'px)';
+        });
+      });
+      function picked(event) {
+        if(event.delta>5)return;
+        let object=event.object;
+        while(object&&!object.userData.structure)object=object.parent;
+        if(!object||object.userData.structure==='membrane')return;
+        // Raycasting ignores material clipping; explicitly reject hits on the removed side.
+        if(clip&&clipping.distanceToPoint(event.point)<0)return;
+        event.stopPropagation(); setSelected(object.userData.structure);
+      }
+      function hovered(event) {
+        let object=event.object; while(object&&!object.userData.structure)object=object.parent;
+        if(object&&object.userData.structure!=='membrane') { event.stopPropagation(); setHover(structures.find(s=>s.id===object.userData.structure).name); }
+      }
+      return h(React.Fragment,null,
+        h(Navigation,{spin,reset,focus}),
+        h('hemisphereLight',{args:['#ffffff','#b1b7c3',2.1]}),
+        h('directionalLight',{position:[7,12,9],intensity:3.1,castShadow:true,'shadow-mapSize':[1024,1024],'shadow-camera-left':-9,'shadow-camera-right':9,'shadow-camera-top':9,'shadow-camera-bottom':-9,'shadow-normalBias':.035}),
+        h('directionalLight',{position:[-8,4,-4],intensity:1.4,color:'#d4defa'}),
+        h('primitive',{object:root,onClick:picked,onPointerOver:hovered,onPointerOut:()=>setHover('')}),
+        h('mesh',{rotation:[-Math.PI/2,0,0],position:[0,-2.22,0],receiveShadow:true},h('planeGeometry',{args:[200,200]}),h('shadowMaterial',{transparent:true,opacity:.12})),
+        h('gridHelper',{args:[16,16,'#ccd9dd','#e5ecee'],position:[0,-2.25,0]}),
+        h('axesHelper',{args:[1.4],position:[-6,-2.2,4.5]})
+      );
+    }
+    function App() {
+      const [visible,setVisible]=useState(defaults), [selected,setSelected]=useState('nucleus'), [opacity,setOpacity]=useState(12), [clip,setClip]=useState(false), [cut,setCut]=useState(0), [axis,setAxis]=useState('x'), [exploded,setExploded]=useState(0), [labels,setLabels]=useState(true), [spin,setSpin]=useState(false), [reset,setReset]=useState(0), [focus,setFocus]=useState(null), [hover,setHover]=useState('');
+      const current=structures.find(s=>s.id===selected);
+      const visibleCount=structures.filter(s=>visible[s.id]).length;
+      function resetAll() { setVisible(defaults());setOpacity(12);setClip(false);setCut(0);setAxis('x');setExploded(0);setLabels(true);setSpin(false);setSelected('nucleus');setFocus(null);setReset(n=>n+1); }
+      const range=(id,label,value,min,max,onChange,suffix='')=>h('label',{className:'control',htmlFor:id},h('span',{className:'caption'},label,h('output',{id:id+'-value'},value+suffix)),h('input',{id,type:'range',min,max,value,step:id==='cut'?.1:1,onChange:e=>onChange(Number(e.target.value))}));
+      return h(React.Fragment,null,
+        h('div',{className:'toolbar'},
+          h('label',null,'Inspect',h('select',{id:'inspect',value:selected,onChange:e=>setSelected(e.target.value)},structures.map(s=>h('option',{key:s.id,value:s.id},s.name)))),
+          h('label',null,h('input',{id:'labels',type:'checkbox',checked:labels,onChange:e=>setLabels(e.target.checked)}),'Labels'),
+          h('label',null,h('input',{id:'spin',type:'checkbox',checked:spin,onChange:e=>setSpin(e.target.checked)}),'Auto-rotate'),
+          h('button',{id:'reset',onClick:resetAll},'Reset explorer'),h('span',{className:'note'},'SYNTHETIC GEOMETRY · REACT THREE FIBER')),
+        h('div',{className:'workspace'},
+          h('section',{className:'card'},h('div',{className:'figure-header'},h('div',null,h('strong',null,'Cell interior / spatial atlas'),h('small',null,' · '+visibleCount+' of 7 layers visible')),h('button',{id:'overview',onClick:()=>{setFocus(null);setReset(n=>n+1);}},'Overview')),
+            h('div',{id:'viewport'},h('div',{id:'canvas-host'},h(Canvas,{shadows:true,dpr:[1,1.7],camera:{position:[11,9,13],fov:39,near:.1,far:100},gl:{antialias:true,localClippingEnabled:true,preserveDrawingBuffer:true},onPointerMissed:()=>setHover(''),fallback:h('p',null,'WebGL is unavailable in this preview.')},h('color',{attach:'background',args:['#f6f8fa']}),h(Cell,{visible,opacity,clip,cut,axis,selected,exploded,setSelected,setHover,reset,focus,spin,labels}))),
+              h('div',{id:'label-layer','aria-hidden':true},structures.map(s=>h('span',{key:s.id,id:'label-'+s.id,className:'structure-label',style:{'--color':s.color,display:'none'}},s.name.toUpperCase()))),
+              hover?h('div',{id:'hover',className:'overlay'},hover+' · click to inspect'):null,
+              h('div',{className:'orientation overlay'},h('b',null,clip?'SECTION / '+axis.toUpperCase()+' ≤ '+cut.toFixed(1):'PERSPECTIVE / WHOLE CELL'),'X red · Y green · Z blue',h('br'),'Coordinates: arbitrary units')),
+            h('div',{className:'figure-footer'},'Drag to orbit · scroll to zoom · right-drag to pan · click a structure to inspect. Geometry is illustrative, not microscopy-derived or to scale.')),
+          h('aside',null,
+            h('section',{className:'card','aria-live':'polite'},h('h2',null,'Selected structure'),h('h3',{id:'selected-name'},current.name),h('p',{className:'muted'},current.note),h('div',{className:'metric'},current.detail,h('br'),'Position: ['+current.centre.join(', ')+'] · arbitrary units'),h('div',{className:'button-row'},h('button',{id:'focus',onClick:()=>{setVisible(v=>({...v,[selected]:true}));setFocus({id:selected,stamp:Date.now()});}},'Focus structure'),h('button',{id:'isolate',onClick:()=>setVisible(Object.fromEntries(structures.map(s=>[s.id,s.id===selected])))},'Isolate'))),
+            h('section',{className:'card'},h('h2',null,'Structure layers'),structures.map(s=>h('div',{key:s.id,className:'layer-row'},h('input',{id:'layer-'+s.id,type:'checkbox',checked:visible[s.id],'aria-label':'Show '+s.name,onChange:e=>setVisible(v=>({...v,[s.id]:e.target.checked}))}),h('label',{htmlFor:'layer-'+s.id},h('i',{className:'dot',style:{background:s.color}}),s.name),h('button',{'aria-label':'Inspect '+s.name,onClick:()=>setSelected(s.id)},String(s.count)))),h('div',{className:'button-row'},h('button',{id:'show-all',onClick:()=>setVisible(defaults())},'Show all'),h('button',{id:'hide-membrane',onClick:()=>setVisible(v=>({...v,membrane:false}))},'Hide membrane')),range('opacity','Membrane opacity',opacity,0,60,setOpacity,'%')),
+            h('section',{className:'card'},h('h2',null,'Cross-section'),h('label',{className:'inline'},h('input',{id:'clipping',type:'checkbox',checked:clip,onChange:e=>setClip(e.target.checked)}),'Enable clipping plane'),h('label',{className:'control'},'Plane axis',h('select',{id:'axis',value:axis,onChange:e=>setAxis(e.target.value)},['x','y','z'].map(a=>h('option',{key:a,value:a},a.toUpperCase())))),range('cut','Plane position',cut,-7,7,setCut,' u'),h('p',{className:'muted'},'Keeps coordinates below the plane. Surfaces are cut open, not capped; use the slider to reveal internal layers.')),
+            h('section',{className:'card'},h('h2',null,'Spatial separation'),range('explode','Exploded view',exploded,0,100,setExploded,'%'),h('p',{className:'muted'},'Offsets layers for inspection. Positions in this mode do not represent a biological arrangement.')),
+            h('section',{className:'card'},h('h2',null,'Export / provenance'),h('button',{id:'snapshot',onClick:()=>{const canvas=document.querySelector('canvas');const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='bioscale-synthetic-cell.png';a.click();}},'Download scene PNG'),h('p',{className:'muted'},'Invented cell envelope, organelles, folds, and filaments. No measured geometry or inferred biological behaviour. PNG includes the rendered scene; HTML labels and controls are excluded.'))
+          )
+        )
+      );
+    }
+    class ErrorBoundary extends React.Component {
+      constructor(props){super(props);this.state={error:null};}
+      static getDerivedStateFromError(error){return {error};}
+      componentDidCatch(error){document.getElementById('status').textContent='Unable to render the explorer: '+error.message;}
+      render(){return this.state.error?h('p',{style:{padding:24}},'The 3D preview could not start. Check WebGL and internet access.'):this.props.children;}
+    }
+    createRoot(document.getElementById('app')).render(h(ErrorBoundary,null,h(App)));
+  </script>
+</body>
+</html>

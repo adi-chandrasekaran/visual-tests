@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale Atlas · Population ancestry</title>
+  <style>
+    :root { color-scheme:light; font-family:Inter,system-ui,sans-serif; color:#29414a; background:#edf2f2; --accent:#177d72; }
+    * { box-sizing:border-box; } body { margin:0; } button,input,select { font:inherit; } input { accent-color:var(--accent); }
+    button,select { border:1px solid #ccdadc; border-radius:7px; padding:8px 11px; color:#29414a; background:white; }
+    button { cursor:pointer; } button:hover { background:#eff8f5; border-color:var(--accent); } :focus-visible { outline:3px solid #48ad99; outline-offset:3px; }
+    header { background:#102f36; color:white; padding:24px 30px; } .eyebrow { font-size:11px; letter-spacing:2px; font-weight:700; color:#8bc8bb; }
+    h1 { margin:7px 0; font-size:clamp(23px,2.5vw,34px); font-weight:600; letter-spacing:-.7px; } header p { margin:0; font-size:13px; color:#bed2d6; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:white; padding:14px 24px; border-bottom:1px solid #d4e1e3; font-size:12px; }
+    .toolbar label { display:flex; gap:7px; align-items:center; } .toolbar small { margin-left:auto; color:#6c858d; }
+    .workspace { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; padding:20px; align-items:start; }
+    .content,aside { display:grid; gap:16px; min-width:0; } .card { border:1px solid #d5e1e4; border-radius:11px; background:white; overflow:hidden; min-width:0; }
+    .card-header { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:16px 18px; border-bottom:1px solid #e7eef0; font-size:12px; }
+    .card-header span { color:#6f858d; font-size:10px; }
+    .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .metric { padding:14px 18px; } .metric span { display:block; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#738b93; } .metric b { display:block; font-size:26px; font-weight:600; margin-top:7px; }
+    #plot { position:relative; } svg { display:block; width:100%; }
+    .axis text { fill:#748b92; font-size:10px; } .axis path,.axis line { stroke:#d5e1e4; } .grid line { stroke:#e7eef0; } .grid path { display:none; }
+    .band { cursor:pointer; stroke:white; stroke-width:.7px; } .band:focus { outline:none; stroke:#173d43; stroke-width:2.5px; }
+    .band-label { fill:white; font-size:12px; font-weight:700; pointer-events:none; paint-order:stroke; stroke:#30434a55; stroke-width:2px; }
+    .event-line { stroke:#5a747b; stroke-opacity:.18; stroke-dasharray:2 5; } .event-label { fill:#637c84; font-size:9px; }
+    .cursor { stroke:#163d43; stroke-width:1.2px; stroke-dasharray:5 4; pointer-events:none; }
+    .cursor-label { fill:#294c54; font-size:11px; font-weight:600; pointer-events:none; }
+    #tooltip { position:absolute; background:#15363e; color:white; pointer-events:none; font-size:11px; line-height:1.7; padding:10px 12px; border-radius:7px; box-shadow:0 4px 16px #19384224; z-index:2; max-width:240px; }
+    #tooltip[hidden] { display:none; }
+    .scrubber { padding:4px 18px 16px; display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; font-size:11px; } .scrubber input { width:100%; } .scrubber button { font-size:11px; padding:6px 10px; }
+    .overview { padding:0 18px 12px; } .overview p { font-size:10px; color:#7a9098; margin:5px 0; }
+    .legend { display:flex; gap:7px; flex-wrap:wrap; padding:0 18px 16px; } .legend button { display:inline-flex; align-items:center; gap:6px; font-size:10px; padding:5px 8px; }
+    .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    aside section { padding:17px; } h2 { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:#6c858c; margin:0 0 13px; } h3 { font-size:22px; margin:0 0 8px; font-weight:600; }
+    .muted { color:#69818a; font-size:11px; line-height:1.7; margin:6px 0; }
+    .properties { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0; } .properties div { padding:10px; background:#f0f6f5; border-radius:7px; } .properties b { display:block; font-size:20px; font-weight:600; } .properties span { font-size:9px; color:#71878f; }
+    .path { font-size:11px; color:#57727b; line-height:1.8; overflow-wrap:anywhere; }
+    .tree-link { fill:none; stroke:#d3dfe2; stroke-width:1.6px; } .tree-node { cursor:pointer; } .tree-node text { font-size:10px; fill:#58717a; } .tree-node circle { stroke:white; stroke-width:1.5px; }
+    table { width:100%; border-collapse:collapse; font-size:11px; } th,td { text-align:right; padding:10px 14px; border-bottom:1px solid #eaf0f2; white-space:nowrap; } th:first-child,td:first-child { text-align:left; }
+    th { color:#758b92; font-size:10px; font-weight:500; } td button { border:0; padding:0; display:inline-flex; align-items:center; gap:7px; font-size:11px; background:transparent; } tr.selected { background:#f0f7f5; }
+    .table-wrap { overflow-x:auto; } .footnote { padding:12px 18px; font-size:10px; color:#7a8f96; line-height:1.7; }
+    .button-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; } .button-row button { font-size:11px; } #status { padding:0 24px 20px; font-size:11px; color:#647f87; }
+    @media(min-width:1650px) { .workspace { max-width:1650px; margin:auto; } }
+    @media(max-width:950px) { .workspace { grid-template-columns:1fr; padding:12px; } aside { grid-template-columns:1fr 1fr; } }
+    @media(max-width:540px) { header { padding:20px; } .toolbar { padding:12px; } aside { grid-template-columns:1fr; } .metric { padding:12px; } .metric b { font-size:20px; } }
+  </style>
+</head>
+<body>
+  <header><div class="eyebrow">BIOSCALE / ENHANCED TESTS 05</div><h1>Population ancestry explorer</h1><p>Clone abundance through time, with descendants emerging inside their ancestral lineages.</p></header>
+  <div class="toolbar"><label>Scale <select id="mode"><option value="relative">Relative abundance (%)</option><option value="absolute">Absolute demo population units</option></select></label><label>Inspect <select id="clone"></select></label><label><input id="events" type="checkbox" checked> Emergence markers</label><label><input id="labels" type="checkbox" checked> Band labels</label><button id="reset">Reset explorer</button><small>D3.js · ANCESTRY-PRESERVING · SYNTHETIC DATA</small></div>
+  <main class="workspace">
+    <div class="content">
+      <div class="metrics"><div class="card metric"><span>Observation time</span><b id="metric-day">100</b></div><div class="card metric"><span>Clones present</span><b id="metric-present">10 / 10</b></div><div class="card metric"><span>Largest exclusive clone</span><b id="metric-dominant">—</b></div></div>
+      <section class="card"><div class="card-header"><strong>Müller plot / nested population history</strong><span id="range-note">Viewing time 0–100</span></div><div id="plot"><svg id="muller" viewBox="0 0 1120 560" role="img" aria-labelledby="plot-title plot-desc"><title id="plot-title">Ancestry-preserving Müller plot</title><desc id="plot-desc">Nested clone envelopes show a synthetic founder and nine descendants. Visible coloured area is exclusive clone abundance; enclosing boundaries contain descendant lineages.</desc></svg><div id="tooltip" hidden></div></div><div class="scrubber"><button id="play">Play time</button><input id="day" type="range" min="0" max="100" value="100" aria-label="Observation time"><output id="day-value">Time 100</output></div><div class="overview"><p>Drag the overview to zoom the time window. Clear the brush to restore the full history.</p><svg id="overview" viewBox="0 0 1080 100" aria-label="Brush to select a time window"></svg></div><div id="legend" class="legend"></div></section>
+      <section class="card"><div class="card-header"><strong>Population at observation time</strong><span>Exclusive values sum to the population total</span></div><div class="table-wrap"><table><thead><tr><th>Clone</th><th>Own share</th><th>Including descendants</th><th>Own population units</th><th>First present after</th></tr></thead><tbody id="population-table"></tbody></table></div><div class="footnote">A parent envelope includes its descendants. Do not add inclusive lineage values together: they overlap by ancestry. The visible parent colour represents only the parent's own population.</div></section>
+    </div>
+    <aside>
+      <section class="card" aria-live="polite"><h2>Clone inspector</h2><h3 id="selected-name">Founder</h3><p class="muted" id="selected-note"></p><div class="properties"><div><b id="own-share">—</b><span>own share / exclusive</span></div><div><b id="lineage-share">—</b><span>lineage share / inclusive</span></div><div><b id="birth">0</b><span>emergence time</span></div><div><b id="descendants">9</b><span>descendant clones</span></div></div><div id="ancestry" class="path">Founder</div><div class="button-row"><button id="clear">Clear emphasis</button><button id="zoom-selected">Zoom to emergence</button></div></section>
+      <section class="card"><h2>Linked ancestry</h2><svg id="lineage-tree" viewBox="0 0 265 285" role="img" aria-label="Selectable clone ancestry tree"></svg><p class="muted">Select a tree node, band, legend chip, or table row to inspect its ancestry and descendants.</p></section>
+      <section class="card"><h2>How nesting works</h2><p class="muted">A clone's envelope contains its own population plus all descendants. Its own abundance is split around its children, so descendants emerge inside the parent rather than as unrelated stacked bands.</p><p class="muted">Sibling envelopes never overlap. Linear interpolation between time samples preserves containment; no spline smoothing invents negative populations or boundary crossings.</p></section>
+      <section class="card"><h2>Export / provenance</h2><div class="button-row"><button id="svg-export">Download SVG</button><button id="csv-export">Download CSV</button></div><p class="muted">All parent links, emergence times, annotations, and population trajectories are invented. Absolute mode uses arbitrary demo population units, not measured cell counts. This is a visual test, not an evolutionary reconstruction.</p></section>
+    </aside>
+  </main><p id="status" role="status">Loading D3.js… Internet access is required.</p>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" onerror="document.getElementById('status').textContent='D3.js could not load. Check internet access and script permissions.'"></script>
+  <script>
+    if(window.d3){try{
+      const clones=[
+        {id:'F',parent:null,name:'Founder',birth:0,color:'#acbfc0',note:'Common ancestor of all displayed clones.',amplitude:100,tau:1,decay:.032,decline:0},
+        {id:'A',parent:'F',name:'Clone A',birth:8,color:'#3c89ba',note:'Synthetic founder-derived lineage A.',amplitude:40,tau:12,decay:.018,decline:62},
+        {id:'A1',parent:'A',name:'Clone A1',birth:25,color:'#47aaa9',note:'Descendant of A; contains the A1a lineage.',amplitude:48,tau:16,decay:.012,decline:72},
+        {id:'A1a',parent:'A1',name:'Clone A1a',birth:60,color:'#83b96d',note:'Third-generation branch descending through A → A1.',amplitude:58,tau:13,decay:0,decline:100},
+        {id:'A2',parent:'A',name:'Clone A2',birth:42,color:'#80bdd5',note:'A second branch inside the A lineage.',amplitude:25,tau:11,decay:.008,decline:80},
+        {id:'B',parent:'F',name:'Clone B',birth:15,color:'#cc739c',note:'Synthetic founder-derived lineage B.',amplitude:45,tau:13,decay:.022,decline:60},
+        {id:'B1',parent:'B',name:'Clone B1',birth:35,color:'#9d78bb',note:'First descendant lineage of B.',amplitude:35,tau:17,decay:.008,decline:85},
+        {id:'B2',parent:'B',name:'Clone B2',birth:68,color:'#ba8ba9',note:'A later branch emerging inside B.',amplitude:40,tau:12,decay:0,decline:100},
+        {id:'C',parent:'F',name:'Clone C',birth:30,color:'#c7ac52',note:'Synthetic founder-derived lineage C.',amplitude:23,tau:15,decay:.015,decline:78},
+        {id:'C1',parent:'C',name:'Clone C1',birth:55,color:'#df955a',note:'Descendant of the C lineage.',amplitude:31,tau:16,decay:0,decline:100}
+      ];
+      const root=d3.stratify().id(d=>d.id).parentId(d=>d.parent)(clones);
+      root.sort((a,b)=>a.data.birth-b.data.birth);
+      const nodes=root.descendants(),byId=new Map(nodes.map(n=>[n.id,n])),times=d3.range(101);
+      const raw=(c,t)=>c.id==='F'?5+100*Math.exp(-t/31):t<=c.birth?0:c.amplitude*(1-Math.exp(-(t-c.birth)/c.tau))*Math.exp(-Math.max(t-c.decline,0)*c.decay);
+      const samples=times.map(time=>{
+        const values=new Map();root.eachAfter(node=>{const own=raw(node.data,time);values.set(node.id,{own,inclusive:own+(node.children||[]).reduce((sum,c)=>sum+values.get(c.id).inclusive,0)});});
+        return {time,values,total:values.get('F').inclusive};
+      });
+      let mode='relative',selected=null,day=100,domain=[0,100],timer=null;
+      const width=1120,height=560,margin={left:57,right:32,top:43,bottom:49};
+      const x=d3.scaleLinear().domain(domain).range([margin.left,width-margin.right]);
+      const y=d3.scaleLinear().range([height-margin.bottom,margin.top]);
+      const svg=d3.select('#muller');
+      svg.append('defs').append('clipPath').attr('id','muller-clip').append('rect').attr('x',margin.left).attr('y',margin.top).attr('width',width-margin.left-margin.right).attr('height',height-margin.top-margin.bottom);
+      const grid=svg.append('g').attr('class','grid').attr('transform','translate('+margin.left+',0)');
+      const bandsLayer=svg.append('g').attr('clip-path','url(#muller-clip)');
+      const eventLayer=svg.append('g');
+      const labelLayer=svg.append('g').attr('clip-path','url(#muller-clip)');
+      const xAxis=svg.append('g').attr('class','axis').attr('transform','translate(0,'+(height-margin.bottom)+')');
+      const yAxis=svg.append('g').attr('class','axis').attr('transform','translate('+margin.left+',0)');
+      svg.append('text').attr('x',width/2).attr('y',height-8).attr('text-anchor','middle').attr('fill','#718990').attr('font-size',11).text('Demonstration time (arbitrary units)');
+      const yTitle=svg.append('text').attr('x',margin.left).attr('y',18).attr('fill','#718990').attr('font-size',10);
+      const cursor=svg.append('line').attr('class','cursor').attr('y1',margin.top).attr('y2',height-margin.bottom);
+      const cursorLabel=svg.append('text').attr('class','cursor-label').attr('y',32);
+      let layers;
+      function layoutData(scale){
+        const series=new Map(nodes.map(n=>[n.id,[]]));
+        samples.forEach(sample=>{
+          const factor=scale==='relative'?100/sample.total:1;
+          function place(node,lower){
+            const v=sample.values.get(node.id),upper=lower+v.inclusive*factor;
+            series.get(node.id).push({time:sample.time,lower,upper,own:v.own*factor,inclusive:v.inclusive*factor});
+            let childBottom=lower+v.own*factor/2;
+            (node.children||[]).forEach(child=>{place(child,childBottom);childBottom+=sample.values.get(child.id).inclusive*factor;});
+          }
+          place(root,0);
+        });
+        // Validate the ancestry geometry, not just its appearance.
+        nodes.forEach(node=>times.forEach(t=>{
+          const v=series.get(node.id)[t];
+          if(v.own < -1e-8||v.upper<v.lower-1e-8)throw new Error('Negative synthetic population.');
+          if(node.parent){const p=series.get(node.parent.id)[t];if(v.lower<p.lower-1e-7||v.upper>p.upper+1e-7)throw new Error('Descendant escaped its parent envelope.');}
+          const children=node.children||[];const childrenTotal=children.reduce((sum,c)=>sum+series.get(c.id)[t].inclusive,0);
+          if(Math.abs(v.inclusive-v.own-childrenTotal)>1e-7)throw new Error('Inclusive and exclusive values disagree.');
+          for(let i=1;i<children.length;i++)if(series.get(children[i-1].id)[t].upper>series.get(children[i].id)[t].lower+1e-7)throw new Error('Sibling envelopes overlap.');
+        }));
+        return series;
+      }
+      const area=d3.area().defined(d=>true).x(d=>x(d.time)).y0(d=>y(d.lower)).y1(d=>y(d.upper)).curve(d3.curveLinear);
+      const paths=bandsLayer.selectAll('path').data(nodes).join('path').attr('class','band').attr('data-clone',d=>d.id).attr('tabindex',0).attr('role','button').attr('aria-label',d=>'Inspect '+d.data.name);
+      const tooltip=document.getElementById('tooltip');
+      function showTooltip(event,node){
+        const [px]=d3.pointer(event,svg.node()),time=Math.max(0,Math.min(100,Math.round(x.invert(px)))),s=samples[time],v=s.values.get(node.id);
+        const title=document.createElement('strong');title.textContent=node.data.name+' · time '+time;
+        tooltip.replaceChildren(title,document.createElement('br'),document.createTextNode('Own: '+(100*v.own/s.total).toFixed(1)+'% · lineage: '+(100*v.inclusive/s.total).toFixed(1)+'%'),document.createElement('br'),document.createTextNode('Parent: '+(node.parent?.data.name||'none')));
+        tooltip.hidden=false;const box=document.getElementById('plot').getBoundingClientRect();tooltip.style.left=Math.max(0,Math.min(box.width-245,event.clientX-box.left+14))+'px';tooltip.style.top=Math.max(0,event.clientY-box.top+15)+'px';
+      }
+      paths.on('click',(_,node)=>select(node.id)).on('pointerenter',showTooltip).on('pointermove',showTooltip).on('pointerleave',()=>tooltip.hidden=true).on('keydown',(event,node)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(node.id);}});
+      function emphasize(){
+        const node=selected?byId.get(selected):null,set=node?new Set([...node.descendants(),...node.ancestors()]):null;
+        paths.attr('fill',d=>set&&!set.has(d)?d3.interpolateRgb(d.data.color,'#ffffff')(.78):d.data.color).attr('stroke',d=>d.id===selected?'#264b53':'white').attr('stroke-width',d=>d.id===selected?1.6:.7);
+        treeNodes.select('circle').attr('r',d=>d.id===selected?6:4).attr('fill',d=>set&&!set.has(d)?'#dbe4e6':d.data.color);
+        document.querySelectorAll('#population-table tr').forEach(row=>row.classList.toggle('selected',row.dataset.clone===selected));
+      }
+      function draw(){
+        layers=layoutData(mode);x.domain(domain);y.domain(mode==='relative'?[0,100]:[0,d3.max(samples,s=>s.total)*1.04]);
+        grid.call(d3.axisLeft(y).ticks(5).tickSize(-(width-margin.left-margin.right)).tickFormat(''));
+        xAxis.call(d3.axisBottom(x).ticks(10));yAxis.call(d3.axisLeft(y).ticks(5).tickFormat(v=>mode==='relative'?v+'%':d3.format('.0f')(v)));
+        yTitle.text(mode==='relative'?'Population share (%)':'Absolute demo population units');
+        paths.attr('d',node=>area.defined(d=>d.time>=node.data.birth)(layers.get(node.id)));
+        eventLayer.selectAll('*').remove();
+        if(document.getElementById('events').checked){clones.filter(c=>c.parent&&c.birth>=domain[0]&&c.birth<=domain[1]).sort((a,b)=>a.birth-b.birth).forEach((c,i)=>{eventLayer.append('line').attr('class','event-line').attr('x1',x(c.birth)).attr('x2',x(c.birth)).attr('y1',margin.top).attr('y2',height-margin.bottom);eventLayer.append('text').attr('class','event-label').attr('x',x(c.birth)+3).attr('y',i%2?39:27).text(c.id+' · '+c.birth);});}
+        labelLayer.selectAll('*').remove();
+        if(document.getElementById('labels').checked){nodes.forEach(node=>{
+          const t=Math.floor(domain[1]),v=layers.get(node.id)[t];
+          if(!v||v.own< (mode==='relative'?2.8:y.domain()[1]*.028)||node.data.birth>=t)return;
+          if(node.children&&y(v.lower)-y(v.lower+v.own/2)<14)return;
+          labelLayer.append('text').attr('class','band-label').attr('x',x(t)-10).attr('y',y(v.lower+v.own*.25)+4).attr('text-anchor','end').text(node.id);
+        });}
+        document.getElementById('range-note').textContent='Viewing time '+domain[0].toFixed(0)+'–'+domain[1].toFixed(0);
+        updateDay();emphasize();
+      }
+      function updateDay(){
+        const sample=samples[day];cursor.attr('x1',x(day)).attr('x2',x(day)).attr('visibility',day<domain[0]||day>domain[1]?'hidden':'visible');cursorLabel.attr('x',Math.max(margin.left+10,Math.min(width-margin.right-65,x(day)+6))).text('t = '+day).attr('visibility',day<domain[0]||day>domain[1]?'hidden':'visible');
+        document.getElementById('day').value=day;document.getElementById('day-value').textContent='Time '+day;document.getElementById('metric-day').textContent=day;
+        document.getElementById('metric-present').textContent=nodes.filter(n=>sample.values.get(n.id).own>1e-8).length+' / '+nodes.length;
+        const dominant=nodes.reduce((a,b)=>sample.values.get(a.id).own>sample.values.get(b.id).own?a:b);document.getElementById('metric-dominant').textContent=dominant.id+' · '+(100*sample.values.get(dominant.id).own/sample.total).toFixed(1)+'%';
+        const tbody=document.getElementById('population-table');tbody.replaceChildren();
+        nodes.forEach(node=>{const v=sample.values.get(node.id),row=document.createElement('tr');row.dataset.clone=node.id;row.classList.toggle('selected',node.id===selected);const cell=document.createElement('td'),button=document.createElement('button'),dot=document.createElement('i');dot.className='dot';dot.style.background=node.data.color;button.append(dot,document.createTextNode(node.data.name));button.onclick=()=>select(node.id);cell.appendChild(button);row.appendChild(cell);[(100*v.own/sample.total).toFixed(1)+'%',(100*v.inclusive/sample.total).toFixed(1)+'%',v.own.toFixed(1),String(node.data.birth)].forEach(value=>{const td=document.createElement('td');td.textContent=value;row.appendChild(td);});tbody.appendChild(row);});
+        const node=byId.get(selected||'F'),v=sample.values.get(node.id);
+        document.getElementById('selected-name').textContent=node.data.name;document.getElementById('selected-note').textContent=node.data.note;
+        document.getElementById('own-share').textContent=(100*v.own/sample.total).toFixed(1)+'%';document.getElementById('lineage-share').textContent=(100*v.inclusive/sample.total).toFixed(1)+'%';
+        document.getElementById('birth').textContent=node.data.birth;document.getElementById('descendants').textContent=node.descendants().length-1;document.getElementById('ancestry').textContent=node.ancestors().reverse().map(n=>n.data.name).join(' → ');
+      }
+      function select(id){selected=id;document.getElementById('clone').value=id||'';updateDay();emphasize();}
+      const treeSvg=d3.select('#lineage-tree'),tree=d3.tree().size([245,200])(root),treeGroup=treeSvg.append('g').attr('transform','translate(15,18)');
+      treeGroup.selectAll('path').data(tree.links()).join('path').attr('class','tree-link').attr('d',d3.linkHorizontal().x(d=>d.y).y(d=>d.x));
+      const treeNodes=treeGroup.selectAll('g').data(tree.descendants()).join('g').attr('class','tree-node').attr('transform',d=>'translate('+d.y+','+d.x+')').attr('tabindex',0).attr('role','button').attr('aria-label',d=>'Select ancestry '+d.data.name).on('click',(_,d)=>select(d.id)).on('keydown',(event,d)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(d.id);}});
+      treeNodes.append('circle').attr('r',4).attr('fill',d=>d.data.color);treeNodes.append('text').attr('x',7).attr('dy',3).text(d=>d.id);
+      const picker=document.getElementById('clone');picker.add(new Option('All clones / no emphasis',''));nodes.forEach(node=>{picker.add(new Option(node.data.name,node.id));const chip=document.createElement('button'),dot=document.createElement('i');dot.className='dot';dot.style.background=node.data.color;chip.append(dot,document.createTextNode(node.id));chip.onclick=()=>select(node.id);document.getElementById('legend').appendChild(chip);});
+      const overview=d3.select('#overview'),ox=d3.scaleLinear().domain([0,100]).range([8,1072]),oy=d3.scaleLinear().domain([0,100]).range([72,7]);
+      const miniature=layoutData('relative'),miniArea=d3.area().x(d=>ox(d.time)).y0(d=>oy(d.lower)).y1(d=>oy(d.upper)).curve(d3.curveLinear);
+      overview.append('g').selectAll('path').data(nodes).join('path').attr('fill',n=>n.data.color).attr('d',n=>miniArea.defined(d=>d.time>=n.data.birth)(miniature.get(n.id)));
+      overview.append('g').attr('class','axis').attr('transform','translate(0,78)').call(d3.axisBottom(ox).ticks(10));
+      const brush=d3.brushX().extent([[8,5],[1072,74]]).on('brush end',event=>{domain=event.selection?event.selection.map(ox.invert):[0,100];if(domain[1]-domain[0]<1)domain=[domain[0],Math.min(100,domain[0]+1)];draw();});
+      const brushGroup=overview.append('g').attr('class','brush').call(brush);
+      document.getElementById('mode').onchange=event=>{mode=event.target.value;draw();};document.getElementById('clone').onchange=event=>select(event.target.value||null);
+      ['events','labels'].forEach(id=>document.getElementById(id).onchange=draw);
+      function pause(){if(timer)clearInterval(timer);timer=null;document.getElementById('play').textContent='Play time';}
+      document.getElementById('day').oninput=event=>{pause();day=Number(event.target.value);updateDay();};
+      document.getElementById('play').onclick=()=>{if(timer){pause();return;}if(day>=100)day=0;document.getElementById('play').textContent='Pause';timer=setInterval(()=>{day=Math.min(100,day+1);updateDay();if(day===100)pause();},160);};
+      document.getElementById('clear').onclick=()=>select(null);
+      document.getElementById('zoom-selected').onclick=()=>{const birth=byId.get(selected||'F').data.birth;brushGroup.call(brush.move,[ox(Math.max(0,birth-8)),ox(Math.min(100,birth+35))]);};
+      document.getElementById('reset').onclick=()=>{pause();mode='relative';day=100;selected=null;document.getElementById('mode').value=mode;picker.value='';document.getElementById('events').checked=true;document.getElementById('labels').checked=true;brushGroup.call(brush.move,null);domain=[0,100];draw();};
+      function download(text,type,name){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+      document.getElementById('csv-export').onclick=()=>{const rows=[['time','clone','parent','emergence_time','own_population','inclusive_population','own_percent','inclusive_percent'],...samples.flatMap(sample=>nodes.map(node=>{const v=sample.values.get(node.id);return [sample.time,node.id,node.parent?.id||'',node.data.birth,v.own.toFixed(6),v.inclusive.toFixed(6),(100*v.own/sample.total).toFixed(6),(100*v.inclusive/sample.total).toFixed(6)];}))];download('# SYNTHETIC DATA - NOT AN EVOLUTIONARY RECONSTRUCTION\n'+rows.map(row=>row.join(',')).join('\n'),'text/csv','bioscale-synthetic-muller.csv');};
+      document.getElementById('svg-export').onclick=()=>{const copy=svg.node().cloneNode(true);copy.setAttribute('xmlns','http://www.w3.org/2000/svg');copy.setAttribute('width',width);copy.setAttribute('height',height);copy.style.background='white';const style=document.createElementNS('http://www.w3.org/2000/svg','style');style.textContent=document.querySelector('style').textContent;copy.insertBefore(style,copy.firstChild);download(new XMLSerializer().serializeToString(copy),'image/svg+xml','bioscale-synthetic-muller.svg');};
+      draw();document.getElementById('status').textContent='Ready · 10 clones · 101 synthetic time samples · ancestry containment, exclusive/inclusive conservation, and sibling non-overlap checks passed';
+    }catch(error){document.getElementById('status').textContent='Unable to draw population ancestry: '+error.message;console.error(error);}}
+  </script>
+</body>
+</html>

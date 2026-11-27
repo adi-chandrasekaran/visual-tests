@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale Atlas · Molecular explorer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@5.4.2/build/viewer/molstar.css">
+  <style>
+    :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #29414a; background: #edf2f2; --accent: #177d72; }
+    * { box-sizing: border-box; } body { margin: 0; } button,input,select { font: inherit; }
+    button,select,input[type="number"] { border: 1px solid #ccdadc; border-radius: 7px; background: white; color: #29414a; padding: 8px 11px; }
+    button { cursor: pointer; } button:hover { border-color: var(--accent); background: #eff8f5; }
+    :focus-visible { outline: 3px solid #48ad99; outline-offset: 3px; } input { accent-color: var(--accent); }
+    header { padding: 24px 30px; background: #102f36; color: white; }
+    .eyebrow { color: #8bc8bb; font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+    h1 { margin: 7px 0; font-size: clamp(23px,2.5vw,34px); font-weight: 600; letter-spacing: -.7px; }
+    header p { margin: 0; font-size: 13px; color: #bed2d6; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: white; border-bottom: 1px solid #d4e1e3; }
+    .toolbar label { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }
+    .workspace { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; padding: 20px; align-items: start; }
+    .card { border: 1px solid #d5e1e4; border-radius: 11px; background: white; overflow: hidden; }
+    .figure-header { padding: 16px 20px; border-bottom: 1px solid #e3ebed; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 12px; }
+    .figure-header span { color: #6a828b; font-size: 11px; }
+    #viewer { position: relative; height: clamp(480px,62vh,740px); background: #f7fafb; }
+    #viewer .msp-plugin { position: absolute; inset: 0; }
+    .sequence { padding: 16px 20px 20px; border-top: 1px solid #e3ebed; }
+    .sequence-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12px; margin-bottom: 14px; }
+    .sequence-head small { color: #6d838b; }
+    #sequence { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+    .seq-block { display: flex; position: relative; padding-top: 16px; gap: 1px; margin-bottom: 6px; }
+    .seq-number { position: absolute; top: 0; left: 0; color: #819399; font-size: 9px; }
+    .residue { padding: 4px 3px 5px; border: 0; border-bottom: 3px solid #becbd0; border-radius: 2px; font: 12px ui-monospace,monospace; width: 19px; background: #f5f8f9; }
+    .residue[data-secondary="helix"] { border-color: #c77f99; } .residue[data-secondary="sheet"] { border-color: #d4b45b; }
+    .residue[aria-pressed="true"] { color: white; background: #177d72; }
+    .residue:hover { background: #cfe8e0; }
+    aside { display: grid; gap: 14px; } aside section { padding: 17px; }
+    h2 { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #6c858c; margin: 0 0 13px; }
+    h3 { font-size: 22px; margin: 0 0 8px; font-weight: 600; }
+    .muted { color: #69818a; font-size: 12px; line-height: 1.65; margin: 6px 0; }
+    .metric { background: #f0f6f5; padding: 10px 12px; border-radius: 7px; font-size: 11px; line-height: 1.8; margin: 13px 0; }
+    .control { display: grid; gap: 7px; margin-top: 14px; font-size: 12px; }
+    .caption { display: flex; justify-content: space-between; } output { color: var(--accent); }
+    .control input[type="range"] { width: 100%; }
+    .button-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; } .button-row button { font-size: 11px; }
+    #goto { width: 80px; } .key { font-size: 11px; line-height: 1.8; color: #637d85; }
+    .key i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    #status { padding: 0 24px 20px; font-size: 11px; color: #647f87; }
+    button:disabled,select:disabled { opacity: .5; cursor: wait; }
+    @media(min-width:1650px) { .workspace { max-width:1650px; margin:auto; } }
+    @media(max-width:950px) { .workspace { grid-template-columns:1fr; padding:12px; } aside { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:540px) { header { padding:20px; } .toolbar { padding:12px; } aside { grid-template-columns:1fr; } #viewer { height:480px; } .sequence { padding:12px; } }
+  </style>
+</head>
+<body>
+  <header><div class="eyebrow">BIOSCALE / ENHANCED TESTS 03</div><h1>Molecular structure explorer</h1><p>From folded architecture to atomic detail. A linked sequence and multiple representations of one synthetic structure.</p></header>
+  <div class="toolbar">
+    <label>Representation <select id="representation" disabled><option value="cartoon">Ribbon / cartoon</option><option value="molecular-surface">Molecular surface</option><option value="ball-and-stick">Ball and stick</option><option value="spacefill">Space-filling atoms</option><option value="combined">Ribbon + translucent surface</option></select></label>
+    <label>Colour <select id="colour" disabled><option value="secondary-structure">Secondary structure</option><option value="sequence-id">Sequence position</option><option value="uniform">Uniform teal</option></select></label>
+    <button id="reset" disabled>Reset view</button><button id="advanced" disabled>Mol* controls</button>
+  </div>
+  <main class="workspace">
+    <section class="card">
+      <div class="figure-header"><div><strong>Synthetic fold / Chain A</strong><span id="model-count"> · generating model…</span></div><span id="mode-note">Ribbon / cartoon</span></div>
+      <div id="viewer" aria-label="Molstar interactive molecular structure viewer"></div>
+      <section class="sequence"><div class="sequence-head"><strong>Sequence / Chain A</strong><small>Click a residue to select it in 3D · border colours show secondary structure</small></div><div id="sequence" aria-label="Interactive amino acid sequence"></div></section>
+    </section>
+    <aside>
+      <section class="card" aria-live="polite"><h2>Residue inspector</h2><h3 id="selected-name">No residue selected</h3><p class="muted" id="selection-note">Select from the sequence, use the residue number below, or click the 3D structure.</p><div id="selected-detail" class="metric">One invented protein chain with helices, sheets, and connecting loops.</div><label class="control" for="goto">Go to residue</label><div class="button-row"><input type="number" id="goto" min="1" value="12" aria-label="Residue number"><button id="select-residue" disabled>Select</button><button id="focus-residue" disabled>Focus</button></div><div class="button-row"><button id="mutation" disabled>Inspect demo variant</button><button id="clear" disabled>Clear selection</button></div></section>
+      <section class="card"><h2>Display layers</h2><label class="control"><span class="caption">Surface opacity <output id="opacity-value">35%</output></span><input type="range" id="opacity" min="10" max="100" value="35" disabled></label><p class="muted">Opacity applies to surface and combined views.</p><label class="control"><span><input type="checkbox" id="ligand" checked disabled> Show synthetic ligand</span></label><label class="control"><span><input type="checkbox" id="spin" disabled> Auto-rotate</span></label><div class="button-row"><button id="download" disabled>Download synthetic PDB</button></div></section>
+      <section class="card"><h2>Reading representations</h2><p class="key"><i style="background:#c77f99"></i>Helices: coiled ribbon segments<br><i style="background:#d4b45b"></i>Sheets: flattened strand arrows<br><i style="background:#aabdc4"></i>Loops: connecting regions</p><p class="muted">The sequence border legend describes the supplied synthetic secondary-structure annotation. Mol* colours depend on the chosen theme.</p><p class="muted">Surface shows the molecular envelope. Atom views show individual atoms and bonds; they use the same underlying coordinates.</p></section>
+      <section class="card"><h2>Navigation / provenance</h2><p class="muted">Drag to rotate · right-drag to pan · scroll to zoom. Mol* controls expose components, representations, selections, and screenshot tools.</p><p class="muted">All sequence, coordinates, ligand geometry, secondary-structure annotations, and variant labels are invented. Side chains are reduced to a Cβ marker. This is not an experimental structure, validated fold, or mutation prediction.</p></section>
+    </aside>
+  </main>
+  <p id="status" role="status">Loading Mol*… Internet access and WebGL are required.</p>
+  <script src="https://cdn.jsdelivr.net/npm/molstar@5.4.2/build/viewer/molstar.js" onerror="document.getElementById('status').textContent='Unable to download Mol*. Check internet access and script permissions.'"></script>
+  <script>
+    (async function () {
+      if (!window.molstar) return;
+      const status = document.getElementById('status');
+      function setStatus(message) { status.textContent = message; }
+      try {
+        const residues=[], segments=[];
+        const names=['ALA','LEU','GLU','LYS','VAL','SER','THR','GLY','ASP','ASN','ARG','ILE','PHE','TYR'];
+        const letters={ALA:'A',LEU:'L',GLU:'E',LYS:'K',VAL:'V',SER:'S',THR:'T',GLY:'G',ASP:'D',ASN:'N',ARG:'R',ILE:'I',PHE:'F',TYR:'Y'};
+        function add(x,y,z,secondary) { const resn=names[(residues.length*5+3)%names.length];residues.push({resi:residues.length+1,resn,letter:letters[resn],position:[x,y,z],secondary}); }
+        function helix(x,y,z,n,direction=1) {
+          const start=residues.length+1;
+          for(let i=0;i<n;i++){const a=i*100*Math.PI/180;add(x+2.3*Math.cos(a),y+direction*i*1.5,z+2.3*Math.sin(a),'helix');}
+          segments.push({type:'helix',start,end:residues.length});
+        }
+        function strand(x,y,z,n,direction) {const start=residues.length+1;for(let i=0;i<n;i++)add(x+(i%2)*.65,y+direction*i*3.3,z+(i%2)*.65,'sheet');segments.push({type:'sheet',start,end:residues.length});}
+        function loop(to,n,bend=4) {const from=residues.at(-1).position;for(let i=1;i<=n;i++){const t=i/(n+1);add(from[0]*(1-t)+to[0]*t+Math.sin(t*Math.PI)*bend,from[1]*(1-t)+to[1]*t,from[2]*(1-t)+to[2]*t+Math.sin(t*Math.PI)*3,'loop');}}
+        helix(-11,-13,0,19);loop([-3,13,2],8);strand(-3,13,2,9,-1);loop([2,-13,2],6,-3);strand(2,-13,2,9,1);
+        loop([13,13,-1],8);helix(11,13,-1,19,-1);loop([7,-13,-5],8,-4);strand(7,-13,-5,9,1);loop([12,13,-6],6,3);strand(12,13,-6,9,-1);
+        loop([-1,-13,-10],9,-4);helix(-3,-13,-10,19);loop([-9,16,-8],7,2);
+        function record(fields) {const row=Array(80).fill(' ');for(const [offset,width,value,right]of fields){const text=right?String(value).padStart(width):String(value).padEnd(width);for(let i=0;i<width;i++)row[offset+i]=text[i]||' ';}return row.join('');}
+        const pdb=['HEADER    INVENTED VISUALIZATION TEST','TITLE     BIOSCALE SYNTHETIC FOLD - NOT VALIDATED BIOLOGY'];
+        let helixId=0,sheetId=0;
+        // PDB record types must be contiguous: interleaving HELIX and SHEET blocks loses earlier annotations.
+        segments.slice().sort((a,b)=>a.type.localeCompare(b.type)).forEach(s=>{
+          const a=residues[s.start-1],b=residues[s.end-1];
+          if(s.type==='helix'){const id=++helixId;pdb.push(record([[0,6,'HELIX '],[7,3,id,true],[11,3,'H'+id],[15,3,a.resn],[19,1,'A'],[21,4,s.start,true],[27,3,b.resn],[31,1,'A'],[33,4,s.end,true],[38,2,1,true],[71,5,s.end-s.start+1,true]]));}
+          else {const id=++sheetId;pdb.push(record([[0,6,'SHEET '],[7,3,id,true],[11,3,'S1'],[14,2,4,true],[17,3,a.resn],[21,1,'A'],[22,4,s.start,true],[28,3,b.resn],[32,1,'A'],[33,4,s.end,true],[38,2,id===1?0:-1,true]]));}
+        });
+        let serial=0;
+        function atom(name,resn,chain,resi,point,element,hetero=false) {pdb.push(record([[0,6,hetero?'HETATM':'ATOM  '],[6,5,++serial,true],[12,4,' '+name.padEnd(3)],[17,3,resn],[21,1,chain],[22,4,resi,true],[30,8,point[0].toFixed(3),true],[38,8,point[1].toFixed(3),true],[46,8,point[2].toFixed(3),true],[54,6,'1.00',true],[60,6,'20.00',true],[76,2,element,true]]));}
+        residues.forEach((r,i)=>{
+          const p=r.position,prev=residues[Math.max(0,i-1)].position,next=residues[Math.min(residues.length-1,i+1)].position;
+          let tangent=next.map((v,j)=>v-prev[j]);const length=Math.hypot(...tangent)||1;tangent=tangent.map(v=>v/length);
+          let normal=[-tangent[1],tangent[0],.3];const norm=Math.hypot(...normal);normal=normal.map(v=>v/norm);
+          const offset=(a,b)=>p.map((v,j)=>v+a*tangent[j]+b*normal[j]);
+          atom('N',r.resn,'A',r.resi,offset(-1.2,0),'N');atom('CA',r.resn,'A',r.resi,p,'C');atom('C',r.resn,'A',r.resi,offset(1.2,0),'C');atom('O',r.resn,'A',r.resi,offset(1.3,1.1),'O');if(r.resn!=='GLY')atom('CB',r.resn,'A',r.resi,offset(0,-1.45),'C');
+        });
+        pdb.push('TER');
+        const ligandStart=serial+1;
+        for(let i=0;i<6;i++){const a=i*Math.PI/3;atom('C'+(i+1),'LIG','B',201,[5+1.4*Math.cos(a),1.4*Math.sin(a),5],'C',true);}
+        atom('O1','LIG','B',201,[7.6,0,5],'O',true);atom('N1','LIG','B',201,[2.4,0,5],'N',true);
+        for(let i=0;i<6;i++)pdb.push('CONECT'+String(ligandStart+i).padStart(5)+String(ligandStart+(i+1)%6).padStart(5));
+        pdb.push('CONECT'+String(ligandStart).padStart(5)+String(ligandStart+6).padStart(5),'CONECT'+String(ligandStart+3).padStart(5)+String(ligandStart+7).padStart(5),'END');
+        const pdbText=pdb.join('\n');
+        const viewer=await molstar.Viewer.create('viewer',{layoutIsExpanded:false,layoutShowControls:false,layoutShowSequence:false,layoutShowLog:false,layoutShowLeftPanel:false,layoutShowRemoteState:false,viewportShowExpand:false,viewportShowAnimation:false,extensions:[],volumeStreamingDisabled:true});
+        const plugin=viewer.plugin;
+        plugin.canvas3d.setProps({renderer:{backgroundColor:0xf7fafb},camera:{helper:{axes:{name:'on',params:{alpha:1,colorX:0xd35b5b,colorY:0x66a766,colorZ:0x6299d2,scale:.28,location:'bottom-left',locationOffsetX:0,locationOffsetY:0}}}}});
+        const raw=await plugin.builders.data.rawData({data:pdbText,label:'BioScale invented fold'});
+        const trajectory=await plugin.builders.structure.parseTrajectory(raw,'pdb');
+        const model=await plugin.builders.structure.createModel(trajectory);
+        const structure=await plugin.builders.structure.createStructure(model);
+        const polymer=await plugin.builders.structure.tryCreateComponentStatic(structure,'polymer',{label:'Synthetic protein · chain A'});
+        const ligand=await plugin.builders.structure.tryCreateComponentStatic(structure,'ligand',{label:'Invented ligand · LIG 201'});
+        if(!polymer)throw new Error('The generated synthetic polymer could not be parsed.');
+        let representations=[],selected=null,advanced=false,applying=false,queued=false;
+        async function style(){
+          if(applying){queued=true;return;}applying=true;
+          try {
+            do {queued=false;document.getElementById('mode-note').textContent='Updating representation…';
+              const update=plugin.state.data.build();representations.forEach(ref=>update.delete(ref));await update.commit();representations=[];
+              const mode=document.getElementById('representation').value,colour=document.getElementById('colour').value,opacity=Number(document.getElementById('opacity').value)/100;
+              const add=async(component,type,extra={})=>{if(!component)return;const rep=await plugin.builders.structure.representation.addRepresentation(component,{type,typeParams:{quality:'medium',...extra},color:colour,colorParams:colour==='uniform'?{value:0x489b92}:{}});representations.push(rep.ref);};
+              if(mode==='combined'){await add(polymer,'cartoon');await add(polymer,'molecular-surface',{alpha:opacity,resolution:1});}
+              else await add(polymer,mode,mode==='molecular-surface'?{alpha:opacity,resolution:1}:{});
+              if(document.getElementById('ligand').checked&&ligand){const rep=await plugin.builders.structure.representation.addRepresentation(ligand,{type:'ball-and-stick',color:'element-symbol'});representations.push(rep.ref);}
+              document.getElementById('mode-note').textContent=document.getElementById('representation').selectedOptions[0].textContent;
+              if(selected!==null)selectResidue(selected,false);
+            }while(queued);
+          }finally{applying=false;}
+        }
+        function lociFor(resi){const s=structure.cell.obj.data,elements=[];for(const unit of s.units){if(unit.kind!==0)continue;const indices=[];for(let i=0;i<unit.elements.length;i++){const atom=unit.elements[i],ri=unit.model.atomicHierarchy.residueAtomSegments.index[atom],ci=unit.model.atomicHierarchy.chainAtomSegments.index[atom];if(unit.model.atomicHierarchy.residues.auth_seq_id.value(ri)===resi&&unit.model.atomicHierarchy.chains.auth_asym_id.value(ci)==='A')indices.push(i);}if(indices.length)elements.push({unit,indices:Int32Array.from(indices)});}return {kind:'element-loci',structure:s,elements};}
+        function selectResidue(resi,focus=false){
+          if(!Number.isInteger(resi)||resi<1||resi>residues.length){document.getElementById('selection-note').textContent='Enter a residue number from 1 to '+residues.length+'.';return;}
+          selected=resi;const r=residues[resi-1],loci=lociFor(resi);
+          plugin.managers.interactivity.lociSelects.deselectAll();plugin.managers.interactivity.lociSelects.select({loci});
+          if(focus)plugin.managers.camera.focusLoci(loci,{durationMs:250,minRadius:7});
+          document.getElementById('selected-name').textContent=r.resn+' '+resi+' · Chain A';
+          document.getElementById('selection-note').textContent=resi===12?'Demo variant '+r.letter+'12H · annotation only. No altered structure or biological effect is predicted.':'Linked sequence and 3D selection.';
+          document.getElementById('selected-detail').textContent='Secondary annotation: '+r.secondary+' · invented coordinates ['+r.position.map(v=>v.toFixed(1)).join(', ')+']. Side chains are schematic.';
+          document.getElementById('goto').value=resi;
+          document.querySelectorAll('.residue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.resi)===resi)));
+        }
+        // Mol* OrderedSets are sorted arrays or packed intervals; decode the first index only.
+        function firstIndex(set){if(typeof set!=='number')return set[0];return new Int32Array(new Float64Array([set]).buffer)[0];}
+        plugin.behaviors.interaction.click.subscribe(event=>{const loci=event.current?.loci;if(loci?.kind!=='element-loci'||!loci.elements.length)return;const e=loci.elements[0],index=e.unit.elements[firstIndex(e.indices)],hierarchy=e.unit.model.atomicHierarchy,ci=hierarchy.chainAtomSegments.index[index];if(hierarchy.chains.auth_asym_id.value(ci)!=='A')return;const ri=hierarchy.residueAtomSegments.index[index];selectResidue(hierarchy.residues.auth_seq_id.value(ri));});
+        const sequence=document.getElementById('sequence');
+        for(let start=0;start<residues.length;start+=10){const block=document.createElement('div');block.className='seq-block';const number=document.createElement('span');number.className='seq-number';number.textContent=String(start+1);block.appendChild(number);residues.slice(start,start+10).forEach(r=>{const button=document.createElement('button');button.className='residue';button.dataset.resi=r.resi;button.dataset.secondary=r.secondary;button.textContent=r.letter;button.title=r.resn+' '+r.resi+' · '+r.secondary;button.setAttribute('aria-label','Select residue '+r.resi+' '+r.resn);button.setAttribute('aria-pressed','false');button.onclick=()=>selectResidue(r.resi);block.appendChild(button);});sequence.appendChild(block);}
+        document.getElementById('goto').max=residues.length;
+        document.getElementById('model-count').textContent=' · '+residues.length+' residues · '+serial+' atoms · synthetic ligand';
+        ['representation','colour','ligand'].forEach(id=>document.getElementById(id).onchange=()=>style().catch(report));
+        document.getElementById('opacity').oninput=event=>{document.getElementById('opacity-value').textContent=event.target.value+'%';if(['molecular-surface','combined'].includes(document.getElementById('representation').value))style().catch(report);};
+        document.getElementById('select-residue').onclick=()=>selectResidue(Number(document.getElementById('goto').value));
+        document.getElementById('focus-residue').onclick=()=>selectResidue(Number(document.getElementById('goto').value),true);
+        document.getElementById('goto').onkeydown=event=>{if(event.key==='Enter')selectResidue(Number(event.target.value),true);};
+        document.getElementById('mutation').onclick=()=>selectResidue(12,true);
+        document.getElementById('clear').onclick=()=>{selected=null;plugin.managers.interactivity.lociSelects.deselectAll();document.querySelectorAll('.residue').forEach(b=>b.setAttribute('aria-pressed','false'));document.getElementById('selected-name').textContent='No residue selected';document.getElementById('selection-note').textContent='Select a residue from the sequence or 3D structure.';document.getElementById('selected-detail').textContent='One invented protein chain with helices, sheets, and loops.';};
+        document.getElementById('spin').onchange=event=>plugin.canvas3d.setProps({trackball:{animate:event.target.checked?{name:'spin',params:{speed:.3}}:{name:'off',params:{}}}});
+        document.getElementById('advanced').onclick=()=>{advanced=!advanced;plugin.layout.setProps({showControls:advanced});};
+        document.getElementById('reset').onclick=async()=>{document.getElementById('representation').value='cartoon';document.getElementById('colour').value='secondary-structure';document.getElementById('opacity').value=35;document.getElementById('opacity-value').textContent='35%';document.getElementById('ligand').checked=true;document.getElementById('spin').checked=false;plugin.canvas3d.setProps({trackball:{animate:{name:'off',params:{}}}});document.getElementById('clear').click();await style();plugin.managers.camera.reset(undefined,250);};
+        document.getElementById('download').onclick=()=>{const url=URL.createObjectURL(new Blob([pdbText],{type:'chemical/x-pdb'}));const a=document.createElement('a');a.href=url;a.download='bioscale-invented-fold.pdb';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+        function report(error){setStatus('Unable to update the molecular view: '+error.message);console.error(error);}
+        await style();plugin.managers.camera.reset(undefined,0);
+        document.querySelectorAll('.toolbar button,.toolbar select,aside button,aside input').forEach(el=>el.disabled=false);
+        setStatus('Ready · Mol* 5.4.2 · '+residues.length+' invented residues · '+serial+' atoms · no external structure dataset');
+      }catch(error){setStatus('Unable to create the molecular explorer: '+error.message);console.error(error);}
+    })();
+  </script>
+</body>
+</html>

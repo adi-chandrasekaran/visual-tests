@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D3 clone population prototype</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #0d1714; color: #e7f2eb; }
+    main { max-width: 1100px; margin: auto; padding: 28px; }
+    h1 { margin-bottom: 6px; font-size: 1.65rem; }
+    p { color: #afc5b8; line-height: 1.5; }
+    #chart { border: 1px solid #2b4539; border-radius: 14px; background: #12211b; overflow: auto; }
+    svg { display: block; }
+    .axis text { fill: #afc5b8; font-size: 12px; }
+    .axis path, .axis line { stroke: #48695a; }
+    .grid line { stroke: #284438; stroke-dasharray: 3 4; }
+    .legend button { border: 1px solid #476354; border-radius: 999px; padding: 8px 12px; margin: 14px 8px 14px 0; color: #e7f2eb; background: #183025; cursor: pointer; }
+    .legend button.active { border-color: #8de5b7; box-shadow: inset 0 0 0 1px #8de5b7; }
+    #details { min-height: 52px; padding: 14px 16px; border-radius: 12px; background: #183025; }
+    #details strong { color: #80dbac; }
+    .hint { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Clone population evolution: D3.js prototype</h1>
+    <p>Select a clone to isolate its population trajectory through eight simulated generations.</p>
+    <div class="legend" id="legend" aria-label="Clone visibility controls"></div>
+    <div id="chart" aria-label="Interactive clone population chart"></div>
+    <div id="details" aria-live="polite"><strong>All clones</strong><br>Each line shows its share of the simulated population over time.</div>
+    <p class="hint">Standalone HTML for direct opening from Cursor; no development server is needed.</p>
+  </main>
+  <script>
+    const generations = d3.range(0, 9);
+    const clones = [
+      { id: "Clone A", color: "#e79f61", mutation: "KRAS p.G12D", values: [18, 22, 28, 37, 46, 52, 49, 45, 42] },
+      { id: "Clone B", color: "#729dd8", mutation: "EGFR amplification", values: [35, 33, 30, 27, 25, 23, 25, 29, 34] },
+      { id: "Clone C", color: "#bb8cde", mutation: "No additional driver", values: [27, 26, 23, 19, 15, 12, 11, 10, 9] },
+      { id: "Clone D", color: "#70c9c2", mutation: "PIK3CA p.H1047R", values: [20, 19, 19, 17, 14, 13, 15, 16, 15] }
+    ];
+    const width = 1000, height = 520, margin = { top: 35, right: 44, bottom: 64, left: 68 };
+    const x = d3.scaleLinear().domain(d3.extent(generations)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([0, 60]).range([height - margin.bottom, margin.top]);
+    const line = d3.line().x((d) => x(d.generation)).y((d) => y(d.share)).curve(d3.curveMonotoneX);
+    const svg = d3.select("#chart").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
+    svg.append("g").attr("class", "grid").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(6).tickSize(-(width - margin.left - margin.right)).tickFormat(""));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(8).tickFormat((d) => `Generation ${d}`));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((d) => `${d}%`));
+    svg.append("text").attr("x", margin.left).attr("y", 18).attr("fill", "#afc5b8").attr("font-size", 13).text("Population share");
+    const plot = svg.append("g");
+    let selected = null;
+    function render() {
+      const paths = plot.selectAll("path.population").data(clones, (d) => d.id).join("path")
+        .attr("class", "population").attr("fill", "none").attr("stroke", (d) => d.color).attr("stroke-width", (d) => d.id === selected ? 5 : 3)
+        .attr("opacity", (d) => !selected || d.id === selected ? 1 : .18)
+        .attr("d", (d) => line(d.values.map((share, generation) => ({ generation, share }))));
+      paths.on("click", (_, d) => selectClone(d.id));
+      d3.select("#legend").selectAll("button").data(clones).join("button")
+        .attr("class", (d) => !selected || d.id === selected ? "active" : "")
+        .style("border-color", (d) => d.color).text((d) => d.id).on("click", (_, d) => selectClone(selected === d.id ? null : d.id));
+    }
+    function selectClone(id) {
+      selected = id;
+      const clone = clones.find((d) => d.id === id);
+      document.querySelector("#details").innerHTML = clone
+        ? `<strong>${clone.id}</strong><br>${clone.mutation} · final population share: ${clone.values.at(-1)}%`
+        : "<strong>All clones</strong><br>Each line shows its share of the simulated population over time.";
+      render();
+    }
+    render();
+  </script>
+</body>
+</html>

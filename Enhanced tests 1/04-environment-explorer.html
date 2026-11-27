@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale Atlas · Environmental response</title>
+  <style>
+    :root { color-scheme:light; font-family:Inter,system-ui,sans-serif; color:#29414a; background:#edf2f2; --accent:#177d72; }
+    * { box-sizing:border-box; } body { margin:0; } button,input { font:inherit; } input { accent-color:var(--accent); }
+    button { border:1px solid #ccdadc; border-radius:7px; padding:8px 11px; color:#29414a; background:white; cursor:pointer; }
+    button:hover { background:#eff8f5; border-color:var(--accent); } :focus-visible { outline:3px solid #48ad99; outline-offset:3px; }
+    header { background:#102f36; color:white; padding:24px 30px; }
+    .eyebrow { font-size:11px; letter-spacing:2px; font-weight:700; color:#8bc8bb; }
+    h1 { margin:7px 0; font-size:clamp(23px,2.5vw,34px); font-weight:600; letter-spacing:-.7px; } header p { margin:0; font-size:13px; color:#bed2d6; }
+    .toolbar { padding:14px 24px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:white; border-bottom:1px solid #d4e1e3; font-size:12px; }
+    .toolbar label { display:flex; align-items:center; gap:7px; } .live { margin-left:auto; color:#267b63; font-size:11px; }
+    .live:before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#38a984; margin-right:6px; }
+    .workspace { display:grid; grid-template-columns:280px minmax(0,1fr); gap:18px; padding:20px; align-items:start; }
+    .card { border:1px solid #d5e1e4; border-radius:11px; background:white; overflow:hidden; min-width:0; }
+    aside { display:grid; gap:14px; } aside section { padding:18px; }
+    h2 { margin:0 0 13px; font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#6c858c; }
+    .muted { color:#69818a; font-size:11px; line-height:1.7; margin:6px 0; }
+    .input-control { padding:15px 0; border-top:1px solid #e9eff0; }
+    .caption { display:flex; justify-content:space-between; align-items:center; font-size:12px; gap:8px; }
+    .caption strong { font-weight:600; } .caption output { font-size:15px; font-weight:600; color:var(--accent); }
+    input[type="range"] { width:100%; margin:14px 0 5px; cursor:pointer; }
+    .range-labels { display:flex; justify-content:space-between; font-size:10px; color:#8a9ca2; }
+    .input-control small { display:block; margin-top:8px; color:#71878e; font-size:10px; }
+    .reference { padding:10px 12px; background:#f0f6f5; border-radius:7px; font-size:11px; line-height:1.9; }
+    .full { width:100%; margin-top:12px; font-size:11px; } .button-row { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; } .button-row button { font-size:11px; }
+    .content { display:grid; gap:16px; min-width:0; }
+    .clone-cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .clone-card { padding:14px 16px; text-align:left; border-top:3px solid var(--clone); }
+    .clone-card[aria-pressed="true"] { box-shadow:0 0 0 2px var(--clone); }
+    .clone-name { display:block; font-size:11px; font-weight:600; color:#66808a; }
+    .share { display:block; font-size:30px; font-weight:600; letter-spacing:-1px; margin:7px 0 3px; }
+    .delta { display:block; font-size:11px; color:#496971; } .delta.positive { color:#19856d; }
+    .mini-bar { display:block; height:4px; background:#eaf0f2; border-radius:4px; overflow:hidden; margin-top:13px; }
+    .mini-bar i { display:block; height:100%; background:var(--clone); transition:width .12s linear; }
+    .chart-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:16px 18px 4px; font-size:12px; }
+    .chart-header strong { font-weight:600; } .chart-header span { font-size:10px; color:#758b93; }
+    .chart { width:100%; height:280px; } .chart.tall { height:310px; }
+    .chart-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; min-width:0; }
+    .legend { display:flex; flex-wrap:wrap; gap:10px; padding:0 18px 12px; font-size:10px; color:#758b93; }
+    .legend i { display:inline-block; height:3px; width:15px; background:#729a99; vertical-align:middle; margin-right:4px; } .legend i.dashed { background:repeating-linear-gradient(90deg,#91a4a8 0 4px,transparent 4px 7px); }
+    .time-control { display:grid; grid-template-columns:auto minmax(80px,1fr) auto; align-items:center; gap:10px; padding:0 18px 15px; font-size:11px; }
+    .time-control input { margin:8px 0; } .time-control button { padding:6px 10px; font-size:11px; }
+    .summary { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:12px 18px; border-top:1px solid #e9eff0; font-size:10px; color:#6d858e; }
+    #status { padding:0 24px 20px; font-size:11px; color:#647f87; }
+    .chart-empty { color:#8aa0a7; font-size:12px; padding:20px; }
+    @media(min-width:1650px) { .workspace { max-width:1650px; margin:auto; } }
+    @media(max-width:1050px) { .workspace { grid-template-columns:250px minmax(0,1fr); } .chart-row { grid-template-columns:1fr; } .clone-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:720px) { .workspace { grid-template-columns:1fr; padding:12px; } aside { grid-template-columns:1fr 1fr; } aside section:first-child { grid-column:1/-1; } }
+    @media(max-width:480px) { header { padding:20px; } aside { grid-template-columns:1fr; } .toolbar { padding:12px; } .share { font-size:26px; } }
+  </style>
+  <script type="importmap">{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom/client":"https://esm.sh/react-dom@18.3.1/client?external=react"}}</script>
+</head>
+<body>
+  <header><div class="eyebrow">BIOSCALE / ENHANCED TESTS 04</div><h1>Environmental response explorer</h1><p>Move an input. See clone responses change. Compare continuously against a reference environment.</p></header>
+  <div id="app"></div><p id="status" role="status">Loading React and Plotly… Internet access is required.</p>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" onerror="document.getElementById('status').textContent='Unable to download Plotly. Check internet access and preview script permissions.'"></script>
+  <script>window.addEventListener('error',()=>{document.getElementById('status').textContent='Unable to load the dashboard. Check internet access and preview script permissions.';});</script>
+  <script type="module">
+    import React,{useState,useMemo,useEffect,useRef} from 'react';
+    import {createRoot} from 'react-dom/client';
+    const h=React.createElement;
+    const initial={oxygen:60,nutrients:65,drug:20,ph:7.2};
+    const inputs=[
+      {id:'oxygen',name:'Oxygen availability',min:0,max:100,step:1,unit:'%',low:'Low oxygen',high:'High oxygen'},
+      {id:'nutrients',name:'Nutrient availability',min:0,max:100,step:1,unit:'%',low:'Depleted',high:'Abundant'},
+      {id:'drug',name:'Drug exposure',min:0,max:100,step:1,unit:'%',low:'No exposure',high:'High exposure'},
+      {id:'ph',name:'Extracellular pH',min:6,max:8,step:.1,unit:'',low:'Acidic · pH 6',high:'pH 8'}
+    ];
+    // Arbitrary UI demonstration coefficients, not a biological model or fitted response.
+    const clones=[
+      {id:'A',name:'Clone A',color:'#3986b5',initial:40,base:.18,coeff:[.8,.65,-1.05,-.45],note:'Demo oxygen/nutrient-responsive clone; exposure reduces its illustrative score.'},
+      {id:'B',name:'Clone B',color:'#d77393',initial:30,base:.08,coeff:[.3,.35,-.65,.15],note:'Demo intermediate response profile, included for comparison.'},
+      {id:'C',name:'Clone C',color:'#8ca854',initial:20,base:-.12,coeff:[-.65,.1,-.35,.65],note:'Demo low-oxygen/acidic-condition response profile.'},
+      {id:'D',name:'Clone D',color:'#9c78b8',initial:10,base:-.04,coeff:[.1,.4,.35,-.15],note:'Demo exposure-tolerant response profile; not a resistance prediction.'}
+    ];
+    const format=(key,value)=>key==='ph'?Number(value).toFixed(1):value+'%';
+    function rate(clone,settings){const x=[(settings.oxygen-60)/50,(settings.nutrients-65)/50,(settings.drug-20)/80,(7.2-settings.ph)/1.2];return clone.base+x.reduce((sum,v,i)=>sum+v*clone.coeff[i],0);}
+    function composition(settings,time){const weights=clones.map(c=>c.initial*Math.exp(rate(c,settings)*time/60)),total=weights.reduce((a,b)=>a+b,0);return weights.map(v=>100*v/total);}
+    function traits(clone,settings){const r=rate(clone,settings),clamp=v=>Math.max(0,Math.min(100,v));return [clamp(50+r*22),clamp(20+settings.drug*.48+(100-settings.oxygen)*.12-clone.coeff[2]*8),clamp(35+settings.nutrients*.3+r*12)];}
+    const config={responsive:true,displaylogo:false,scrollZoom:false,modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d'],toImageButtonOptions:{format:'png',scale:2}};
+    const baseLayout={paper_bgcolor:'white',plot_bgcolor:'white',font:{family:'Inter, system-ui, sans-serif',size:10,color:'#6c838c'},margin:{l:48,r:20,t:16,b:40},hoverlabel:{font:{family:'system-ui',size:11}},showlegend:false,dragmode:'zoom'};
+    function Plot({id,data,layout,label,onPick}){
+      const ref=useRef(null),generation=useRef(0);
+      useEffect(()=>{
+        const version=++generation.current;
+        Plotly.react(ref.current,data,{...baseLayout,...layout,uirevision:'environment'},config).then(()=>{
+          if(version!==generation.current)return;
+          ref.current.dataset.ready='true';
+          ref.current.removeAllListeners('plotly_click');
+          if(onPick)ref.current.on('plotly_click',event=>onPick(event.points[0]));
+        }).catch(error=>{document.getElementById('status').textContent='Unable to draw a response chart: '+error.message;console.error(error);});
+      },[data,layout,onPick]);
+      useEffect(()=>{const node=ref.current;const observer=new ResizeObserver(()=>{if(node._fullLayout)Plotly.Plots.resize(node);});observer.observe(node);return()=>{observer.disconnect();Plotly.purge(node);};},[]);
+      return h('div',{id,ref,className:'chart'+(id==='trajectory'?' tall':''),role:'img','aria-label':label});
+    }
+    function App(){
+      const [settings,setSettings]=useState({...initial}),[reference,setReference]=useState({...initial}),[day,setDay]=useState(60),[selected,setSelected]=useState(null),[showReference,setShowReference]=useState(true),[playing,setPlaying]=useState(false);
+      const times=useMemo(()=>Array.from({length:61},(_,i)=>i),[]);
+      const paths=useMemo(()=>times.map(t=>composition(settings,t)),[settings,times]);
+      const refPaths=useMemo(()=>times.map(t=>composition(reference,t)),[reference,times]);
+      const current=paths[day],baseline=refPaths[day],deltas=current.map((v,i)=>v-baseline[i]);
+      const pick=id=>setSelected(v=>v===id?null:id);
+      const alpha=id=>selected&&selected!==id?.25:1;
+      useEffect(()=>{if(!playing)return;const timer=setInterval(()=>setDay(value=>{if(value>=60){setPlaying(false);return 60;}return value+1;}),180);return()=>clearInterval(timer);},[playing]);
+      useEffect(()=>{document.getElementById('status').textContent='Ready · React + Plotly.js · continuous inputs · all response rules are arbitrary demonstration data';},[]);
+      const lineData=clones.flatMap((c,i)=>[
+        ...(showReference?[{x:times,y:refPaths.map(row=>row[i]),name:c.name+' reference',type:'scatter',mode:'lines',line:{color:c.color,width:1.2,dash:'dot'},opacity:alpha(c.id)*.5,hovertemplate:c.name+' reference: %{y:.1f}%<extra></extra>'}]:[]),
+        {x:times,y:paths.map(row=>row[i]),name:c.name,type:'scatter',mode:'lines',line:{color:c.color,width:selected===c.id?3.5:2.5},opacity:alpha(c.id),customdata:times.map(()=>c.id),hovertemplate:c.name+': %{y:.1f}%<extra></extra>'}
+      ]);
+      const compositionData=clones.map((c,i)=>({x:times,y:paths.map(row=>row[i]),name:c.name,type:'scatter',mode:'lines',stackgroup:'composition',line:{color:c.color,width:.5},fillcolor:c.color,opacity:alpha(c.id),customdata:times.map(()=>c.id),hovertemplate:c.name+': %{y:.1f}%<extra></extra>'}));
+      const bars=[{x:clones.map(c=>c.name),y:baseline,name:'Reference',type:'bar',marker:{color:'#d8e3e6'},hovertemplate:'Reference: %{y:.1f}%<extra></extra>'},{x:clones.map(c=>c.name),y:current,name:'Current',type:'bar',marker:{color:clones.map(c=>c.color),opacity:clones.map(c=>alpha(c.id))},hovertemplate:'Current: %{y:.1f}%<extra></extra>'}];
+      const changes=clones.map(c=>traits(c,settings).map((v,i)=>v-traits(c,reference)[i]));
+      const traitExtent=Math.max(10,Math.ceil(Math.max(...changes.flat().map(Math.abs))/10)*10);
+      const heatmap=[{type:'heatmap',x:['Growth index','Stress index','Cycling index'],y:clones.map(c=>c.name),z:changes,zmin:-traitExtent,zmax:traitExtent,zmid:0,colorscale:[[0,'#738fb7'],[.5,'#f7f9fa'],[1,'#ca7c89']],showscale:true,colorbar:{thickness:8,len:.8,tickfont:{size:9},title:{text:'Δ score',side:'right',font:{size:9}}},text:changes.map(row=>row.map(v=>(v>=0?'+':'')+v.toFixed(1))),texttemplate:'%{text}',textfont:{size:12},hovertemplate:'%{y} · %{x}<br>Change: %{z:.1f} demo points<extra></extra>'}];
+      const axis={showgrid:true,gridcolor:'#edf2f3',zeroline:false};
+      const timeLayout={xaxis:{...axis,title:{text:'Demonstration time (arbitrary days)',font:{size:10}},range:[0,60]},yaxis:{...axis,title:{text:'Population share (%)',font:{size:10}},range:[0,100]},hovermode:'x unified',shapes:[{type:'line',x0:day,x1:day,y0:0,y1:100,line:{color:'#6d888e',width:1,dash:'dash'}}]};
+      function reset(){setSettings({...initial});setReference({...initial});setDay(60);setSelected(null);setPlaying(false);setShowReference(true);}
+      function download(){const rows=[['demo_day','clone','current_percent','reference_percent','delta_percentage_points'],...times.flatMap((t)=>clones.map((c,i)=>[t,c.id,paths[t][i].toFixed(6),refPaths[t][i].toFixed(6),(paths[t][i]-refPaths[t][i]).toFixed(6)]))];const metadata=['# SYNTHETIC UI DEMONSTRATION DATA - NOT A BIOLOGICAL MODEL','# current_inputs='+JSON.stringify(settings),'# reference_inputs='+JSON.stringify(reference)];const blob=new Blob([metadata.join('\n')+'\n'+rows.map(row=>row.join(',')).join('\n')],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='bioscale-environment-demo.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+      return h(React.Fragment,null,
+        h('div',{className:'toolbar'},h('button',{id:'reset',onClick:reset},'Reset dashboard'),h('button',{id:'all-clones',onClick:()=>setSelected(null)},'Show all clones'),h('label',null,h('input',{id:'show-reference',type:'checkbox',checked:showReference,onChange:e=>setShowReference(e.target.checked)}),'Reference curves'),h('span',{className:'live'},'LIVE INPUT → RESPONSE · PLACEHOLDERS')),
+        h('main',{className:'workspace'},
+          h('aside',null,
+            h('section',{className:'card'},h('h2',null,'Environmental inputs'),h('p',{className:'muted'},'Drag any slider. Charts and clone summaries update continuously.'),inputs.map(input=>h('div',{key:input.id,className:'input-control'},h('label',{htmlFor:input.id,className:'caption'},h('strong',null,input.name),h('output',{id:input.id+'-value'},format(input.id,settings[input.id]))),h('input',{id:input.id,type:'range',min:input.min,max:input.max,step:input.step,value:settings[input.id],onChange:e=>setSettings(v=>({...v,[input.id]:Number(e.target.value)}))}),h('div',{className:'range-labels'},h('span',null,input.low),h('span',null,input.high)),h('small',null,'Reference: '+format(input.id,reference[input.id]))))),
+            h('section',{className:'card'},h('h2',null,'Comparison reference'),h('div',{className:'reference',id:'reference-values'},inputs.map(input=>h('div',{key:input.id},input.name+': '+format(input.id,reference[input.id])))),h('button',{id:'pin-reference',className:'full',onClick:()=>setReference({...settings})},'Set current inputs as reference'),h('p',{className:'muted'},'Compare the same day under both environments. Pinning the current inputs makes their differences zero.')),
+            h('section',{className:'card'},h('h2',null,selected?'Inspecting clone '+selected:'Clone inspection'),h('p',{id:'clone-note',className:'muted'},selected?clones.find(c=>c.id===selected).note:'Click a clone card, curve, or comparison bar to emphasise that clone across charts.'),h('button',{id:'download',className:'full',onClick:download},'Download response CSV')),
+            h('section',{className:'card'},h('h2',null,'Data provenance'),h('p',{className:'muted'},'All coefficients, profiles, and trait indices are invented for interface testing. Oxygen, exposure, pH, and time labels do not imply validated biology. This dashboard shows relative composition, not absolute cell counts or treatment predictions.'))
+          ),
+          h('div',{className:'content'},
+            h('div',{className:'clone-cards'},clones.map((c,i)=>h('button',{key:c.id,id:'clone-'+c.id,className:'card clone-card',style:{'--clone':c.color},'aria-pressed':selected===c.id,onClick:()=>pick(c.id)},h('span',{className:'clone-name'},c.name+' · day '+day),h('span',{className:'share','data-share':c.id},current[i].toFixed(1)+'%'),h('span',{className:'delta'+(deltas[i]>0?' positive':''),'data-delta':c.id},(deltas[i]>=0?'+':'')+deltas[i].toFixed(1)+' pp vs reference'),h('span',{className:'mini-bar'},h('i',{style:{width:current[i]+'%'}}))))),
+            h('section',{className:'card'},h('div',{className:'chart-header'},h('strong',null,'Population response through time'),h('span',null,'Solid: current inputs · dotted: reference')),h(Plot,{id:'trajectory',label:'Clone population share trajectories under current and reference conditions',data:lineData,layout:timeLayout,onPick:point=>{if(point.customdata)pick(point.customdata);}}),h('div',{className:'time-control'},h('button',{id:'play',onClick:()=>{if(!playing&&day===60)setDay(0);setPlaying(v=>!v);}},playing?'Pause':'Play time'),h('input',{id:'day',type:'range',min:0,max:60,step:1,value:day,'aria-label':'Observation day',onChange:e=>{setPlaying(false);setDay(Number(e.target.value));}}),h('output',{id:'day-value'},'Day '+day)),h('div',{className:'legend'},clones.map(c=>h('span',{key:c.id},h('i',{style:{background:c.color}}),c.name)))),
+            h('div',{className:'chart-row'},
+              h('section',{className:'card'},h('div',{className:'chart-header'},h('strong',null,'Reference vs current'),h('span',null,'At day '+day)),h(Plot,{id:'comparison',label:'Reference and current population shares by clone',data:bars,layout:{barmode:'group',bargap:.3,xaxis:{...axis},yaxis:{...axis,range:[0,100],ticksuffix:'%'},margin:{l:42,r:16,t:16,b:42}},onPick:point=>{const c=clones.find(c=>c.name===point.x);if(c)pick(c.id);}}),h('div',{className:'legend'},h('span',null,h('i',{style:{background:'#d8e3e6'}}),'Reference'),h('span',null,'Coloured bars: current'))),
+              h('section',{className:'card'},h('div',{className:'chart-header'},h('strong',null,'Current population composition'),h('span',null,'Normalised to 100%')),h(Plot,{id:'composition',label:'Stacked clone composition over demonstration time',data:compositionData,layout:timeLayout,onPick:point=>pick(point.customdata)}),h('div',{className:'legend'},h('span',null,'Stacking shows composition only; it does not encode ancestry.')))
+            ),
+            h('section',{className:'card'},h('div',{className:'chart-header'},h('strong',null,'Illustrative clone characteristics'),h('span',null,'Current minus reference · arbitrary score points')),h(Plot,{id:'traits',label:'Heatmap of changes in illustrative growth, stress, and cycling indices',data:heatmap,layout:{height:220,xaxis:{side:'top',showgrid:false},yaxis:{autorange:'reversed',showgrid:false},margin:{l:65,r:55,t:40,b:15}},onPick:point=>{const c=clones.find(c=>c.name===point.y);if(c)pick(c.id);}}),h('div',{className:'summary'},h('span',{id:'total-share'},'Current composition total: '+current.reduce((a,b)=>a+b,0).toFixed(1)+'%'),h('span',null,'pp = percentage points · indices are demo scores, not measurements')))
+          )
+        )
+      );
+    }
+    if(window.Plotly)createRoot(document.getElementById('app')).render(h(App));
+  </script>
+</body>
+</html>

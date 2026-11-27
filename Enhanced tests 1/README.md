@@ -24,4 +24,14 @@ Try orbit/zoom/pan, selecting from the scene or Inspect menu, Focus structure, I
 
 All geometry is deterministic and invented, not measured or calibrated. Coordinates use arbitrary units. Reference: [React Three Fiber Canvas](https://r3f.docs.pmnd.rs/api/canvas) and [scene events](https://r3f.docs.pmnd.rs/api/events).
 
-Remaining modules will be created separately after each preceding PR is tested and merged: molecular structure, environmental input/response sliders, population Müller plot, and multiscale genomic tracks.
+## 03 — Molecular structure explorer
+
+Open `03-molecular-explorer.html` in Cursor and run with the same HTML preview workflow. Pinned Mol* 5.4.2 JavaScript/CSS loads from a CDN; internet access, JavaScript, and WebGL are required. No localhost, build, or external structure dataset is needed.
+
+One synthetic folded protein and a synthetic ligand are generated as PDB text inside the file. Helix/sheet records explicitly describe the invented secondary structure. Side chains contain at most a Cβ marker: this is not a chemically validated or experimentally measured structure. The same coordinates support ribbon/cartoon, molecular surface, ball-and-stick, space-filling, and combined ribbon/surface views. Colour by secondary structure, sequence position, or uniform teal; adjust surface opacity, ligand visibility, and auto-rotation.
+
+Click a sequence residue or the 3D protein to link the inspector and selection. Use a residue number, Focus, or Inspect demo variant to navigate. The variant at residue 12 is annotation only, not a mutation structure or effect prediction. Mol* controls expose native representation/component and screenshot tools. Download synthetic PDB exports the generated model. Reset view restores the default representation and camera.
+
+References: [Mol* viewer guide](https://molstar.org/viewer-docs/), [plugin setup](https://molstar.org/docs/v5/plugin/instance/), and [selection model](https://molstar.org/docs/v5/plugin/selections/).
+
+Remaining modules will be created separately after each preceding PR is tested and merged: environmental input/response sliders, population Müller plot, and multiscale genomic tracks.

@@ -50,7 +50,7 @@
     const svg = d3.select("#chart").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
     const canvas = svg.append("g").attr("transform", "translate(80,55)");
     canvas.selectAll("path").data(root.links()).join("path").attr("class", "link")
-      .attr("d", d3.linkVertical().x(d => d.target.x).y(d => d.target.y));
+      .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y));
     const nodes = canvas.selectAll("g").data(root.descendants()).join("g").attr("class", "node")
       .attr("transform", d => `translate(${d.x},${d.y})`).on("click", (_, d) => showDetails(d.data));
     nodes.append("circle").attr("r", 23).attr("fill", d => colors[d.data.name] || "#58bf88");

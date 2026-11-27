@@ -46,4 +46,14 @@ The response calculation uses arbitrary coefficients and normalised exponential 
 
 References: [Plotly updates](https://plotly.com/javascript/plotlyjs-function-reference/), [stacked area charts](https://plotly.com/javascript/filled-area-plots/), and [React integration](https://plotly.com/javascript/react/).
 
-Remaining modules will be created separately after each preceding PR is tested and merged: population Müller plot and multiscale genomic tracks.
+## 05 — Population ancestry / Müller plot
+
+Open `05-muller-explorer.html` in Cursor with the same HTML preview workflow. Pinned D3.js 7.9.0 loads from a CDN; internet and JavaScript are required. No localhost or build is needed.
+
+Ten invented clones form a founder and three branching families over 101 time samples. The layout recursively places each descendant envelope inside its parent; each parent's exclusive population is split around its children. A parent's enclosing polygon includes descendants, while its remaining visible colour represents only its own population. Inclusive lineage values must not be added across generations. Linear interpolation preserves nesting without spline overshoot. Runtime checks validate nonnegative populations, parent containment, sibling non-overlap, and inclusive/exclusive conservation at every sample.
+
+Try relative/absolute scaling, clone selection from bands/legend/table/ancestry tree, observation-time slider and playback, emergence markers, band labels, overview brushing, Zoom to emergence, Reset explorer, and SVG/CSV exports. The inspector and table distinguish exclusive clone abundance from inclusive lineage abundance. Absolute mode shows arbitrary demo population units, not measured cell counts. The SVG exports the current plot window and selected emphasis. CSV contains all 101 times, parent IDs, emergence times, exclusive and inclusive values, and shares.
+
+Every parent link, emergence event, and abundance trajectory is deterministic invented data, not reconstructed evolution. References: [ggmuller methodology](https://cran.r-project.org/web/packages/ggmuller/vignettes/ggmuller.html), [D3 areas](https://d3js.org/d3-shape/area), and [D3 brushing](https://d3js.org/d3-brush).
+
+The final module, multiscale genomic tracks, will be created after this PR is tested and merged.

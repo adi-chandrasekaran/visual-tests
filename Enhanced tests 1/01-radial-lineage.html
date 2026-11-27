@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale Atlas · Radial lineage</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #213943; background: #edf2f2; --accent: #16796f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select { font: inherit; }
+    button, select, input[type="search"] { border: 1px solid #cfdbdd; border-radius: 7px; background: #fff; padding: 8px 11px; color: #29434c; }
+    button { cursor: pointer; }
+    button:hover { border-color: var(--accent); background: #f1f8f6; }
+    :focus-visible { outline: 3px solid #36a898; outline-offset: 3px; }
+    header { background: #102f36; color: #fff; padding: 24px 30px; }
+    .eyebrow { color: #8bc8bb; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+    h1 { margin: 8px 0; font-size: clamp(23px, 2.5vw, 34px); font-weight: 600; letter-spacing: -.7px; }
+    header p { margin: 0; color: #b9d0d4; font-size: 13px; }
+    .topline { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+    .badge { border: 1px solid #42666a; border-radius: 30px; padding: 7px 13px; color: #bce4d5; font-size: 11px; white-space: nowrap; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; background: #fff; padding: 14px 24px; border-bottom: 1px solid #d7e2e4; }
+    .toolbar label { font-size: 12px; display: inline-flex; align-items: center; gap: 7px; }
+    .toolbar input[type="search"] { width: 170px; }
+    input { accent-color: var(--accent); }
+    #search-note { font-size: 12px; color: #5c747c; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 310px; margin: 20px; gap: 18px; align-items: start; }
+    .card { background: white; border: 1px solid #d6e2e4; border-radius: 11px; overflow: hidden; }
+    .figure-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid #e6edee; }
+    .figure-header strong { font-size: 13px; } .figure-header span { font-size: 11px; color: #6a8289; }
+    .zoom-controls { display: flex; gap: 5px; } .zoom-controls button { padding: 5px 10px; }
+    #chart { position: relative; background: #fcfdfd; }
+    #tree { width: 100%; display: block; touch-action: none; }
+    .figure-footer { border-top: 1px solid #e6edee; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 11px; color: #637d85; }
+    .figure-footer label { display: inline-flex; gap: 8px; align-items: center; }
+    .figure-footer input { width: 120px; }
+    aside { display: grid; gap: 14px; }
+    aside section { padding: 18px; }
+    h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: #69828a; margin: 0 0 14px; }
+    h3 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+    .muted { color: #6b8088; font-size: 12px; line-height: 1.6; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .metric { background: #f2f7f6; border-radius: 7px; padding: 10px; }
+    .metric b { display: block; font-size: 20px; font-weight: 600; } .metric span { font-size: 10px; color: #637c83; }
+    .lineage-list { display: grid; gap: 8px; }
+    .lineage-list button { display: flex; align-items: center; text-align: left; gap: 9px; padding: 8px; font-size: 12px; }
+    .swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+    .lineage-list small { margin-left: auto; color: #70878d; }
+    .ring-key { margin-top: 13px; font-size: 11px; }
+    .gradient { height: 7px; border-radius: 4px; margin: 6px 0 4px; }
+    .range { display: flex; justify-content: space-between; color: #72868c; font-size: 10px; }
+    .path { font-size: 11px; line-height: 1.7; color: #4d6870; margin-top: 12px; overflow-wrap: anywhere; }
+    #tooltip { position: absolute; max-width: 230px; pointer-events: none; background: #12343b; color: #f2faf8; padding: 10px 12px; border-radius: 7px; font-size: 11px; line-height: 1.7; box-shadow: 0 4px 20px #12343b26; z-index: 2; }
+    #tooltip[hidden] { display: none; }
+    .branch { fill: none; stroke-linecap: round; }
+    .tree-label { font-size: 8px; fill: #4e6670; cursor: pointer; }
+    .node { cursor: pointer; } .node:focus { outline: none; stroke: #173c43; stroke-width: 3px; }
+    .ring-segment { cursor: pointer; }
+    .guide { fill: none; stroke: #e5edef; stroke-dasharray: 2 5; }
+    .leader { stroke: #dce6e8; stroke-width: .6px; stroke-dasharray: 2 3; }
+    .clade-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; }
+    #status { padding: 0 24px 20px; color: #657f86; font-size: 11px; }
+    .guide-copy { margin: 0; font-size: 12px; line-height: 1.7; color: #5e7780; }
+    #export { width: 100%; margin-top: 14px; font-size: 12px; }
+    @media (min-width: 1650px) { .workspace { max-width: 1600px; margin-inline: auto; } }
+    @media (max-width: 950px) { .workspace { grid-template-columns: 1fr; margin: 12px; } aside { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 540px) { header { padding: 20px; } .badge { display: none; } .toolbar { padding: 12px; gap: 10px; } aside { grid-template-columns: 1fr; } .figure-header { flex-wrap: wrap; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topline"><div><div class="eyebrow">BioScale / Enhanced tests 01</div><h1>Phylogenetic lineage atlas</h1><p>Ancestry, divergence, and clone attributes in one annotated radial view.</p></div><span class="badge">SYNTHETIC DATA · D3.js</span></div>
+  </header>
+  <div class="toolbar" aria-label="Tree controls">
+    <label>Find clone <input id="search" type="search" placeholder="e.g. CL-A001" aria-label="Find clone or ancestor"></label><span id="search-note" role="status"></span>
+    <label>Lineage <select id="lineage"><option value="all">All lineages</option><option value="A">A · Proliferative</option><option value="B">B · Stress-adapted</option><option value="C">C · Quiescent</option><option value="D">D · Dispersive</option></select></label>
+    <label>Branch scale <select id="scale"><option value="distance">Synthetic divergence</option><option value="topology">Topology only</option></select></label>
+    <label><input id="labels" type="checkbox" checked> Labels</label><label><input id="rings" type="checkbox" checked> Annotation rings</label>
+  </div>
+  <div class="workspace">
+    <section class="card" aria-label="Radial tree figure">
+      <div class="figure-header"><div><strong>128 observed clones</strong><span> · 4 lineages · 253 ancestral + observed nodes</span></div><div class="zoom-controls"><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="reset">Reset</button></div></div>
+      <div id="chart"><svg id="tree" viewBox="0 0 1040 1040" role="img" aria-labelledby="tree-title tree-desc"><title id="tree-title">Annotated radial clone lineage tree</title><desc id="tree-desc">Four colour-coded lineage groups, 128 terminal clones, synthetic divergence branch lengths, and rings for state, mutation burden, and sampling day. Select branches, nodes, labels, or rings to inspect ancestry.</desc></svg><div id="tooltip" hidden></div></div>
+      <div class="figure-footer"><label>Rotate <input id="rotation" type="range" min="-180" max="180" value="0" aria-label="Rotate tree"><output id="angle">0°</output></label><span id="scale-note">Radius: cumulative synthetic divergence units</span><span>Scroll to zoom · drag to pan</span></div>
+    </section>
+    <aside>
+      <section class="card" id="inspector" aria-live="polite"><h2>Selection / Ancestry</h2><h3 id="selected-name">Common ancestor</h3><div class="muted" id="selected-subtitle">Root of the synthetic population</div><div class="metrics"><div class="metric"><b id="descendants">128</b><span>observed descendants</span></div><div class="metric"><b id="divergence">0.000</b><span>root divergence</span></div><div class="metric"><b id="burden">—</b><span>mutation burden</span></div><div class="metric"><b id="day">—</b><span>sampling day</span></div></div><div id="annotation" class="muted" style="margin-top:12px">Click a node or ring to inspect a clone or ancestral subtree.</div><div class="path" id="ancestry">Founder</div><button id="clear">Clear selection</button></section>
+      <section class="card"><h2>Lineage groups</h2><div id="legend" class="lineage-list"></div><p class="muted">Colour identifies lineage, not evolutionary distance. Click a group to inspect its ancestor.</p></section>
+      <section class="card"><h2>Annotation rings · inside → out</h2><div class="ring-key"><b>01 / Clone state</b><div id="state-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div></div><div class="ring-key"><b>02 / Mutation burden</b><div class="gradient" style="background:linear-gradient(90deg,#fff7bc,#d95f0e,#662506)"></div><div class="range"><span>3 variants</span><span>24 variants</span></div></div><div class="ring-key"><b>03 / Sampling day</b><div class="gradient" style="background:linear-gradient(90deg,#e0ecf4,#9ebcda,#8856a7)"></div><div class="range"><span>Day 0</span><span>Day 60</span></div></div></section>
+      <section class="card"><h2>Reading the atlas</h2><p class="guide-copy">The centre is the common ancestor. Splits mark ancestral branching. Outer labels identify observed clones; dotted extensions align their annotations. Rings describe each terminal clone, not its ancestors.</p><p class="muted">Placeholder topology, branch lengths, states, variants, and dates are invented. No biological inference or calibration is implied.</p><button id="export">Download SVG figure</button><p class="muted">Keyboard: Tab to nodes; Enter or Space to inspect.</p></section>
+    </aside>
+  </div>
+  <p id="status" role="status">Loading D3.js… Internet access is required for the library.</p>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" onerror="document.getElementById('status').textContent='D3.js could not load. Check internet access and preview script permissions.'"></script>
+  <script>
+    if (window.d3) { try {
+      const groups = [
+        { id: 'A', name: 'Proliferative', color: '#2979b8', driver: 'KRAS · demo annotation' },
+        { id: 'B', name: 'Stress-adapted', color: '#e06486', driver: 'PIK3CA · demo annotation' },
+        { id: 'C', name: 'Quiescent', color: '#779f35', driver: 'RB1 · demo annotation' },
+        { id: 'D', name: 'Dispersive', color: '#9a6ac3', driver: 'SMAD4 · demo annotation' }
+      ];
+      const stateColors = { Cycling: '#1a9988', Dormant: '#d9b347', Resistant: '#b55b93' };
+      let seed = 421;
+      function random() { seed = (1664525 * seed + 1013904223) >>> 0; return seed / 4294967296; }
+      function binary(group, depth, counter) {
+        const length = .012 + random() * .043;
+        if (depth === 0) {
+          const number = ++counter.value;
+          return { name: 'CL-' + group.id + String(number).padStart(3, '0'), group: group.id, length,
+            state: Object.keys(stateColors)[Math.floor(random() * 3)], burden: 3 + Math.floor(random() * 22), day: Math.floor(random() * 61) };
+        }
+        return { name: group.id + '-ANC-' + (++counter.ancestor), group: group.id, length, children: [binary(group, depth - 1, counter), binary(group, depth - 1, counter)] };
+      }
+      const data = { name: 'Founder', length: 0, children: groups.map(group => {
+        const subtree = binary(group, 5, { value: 0, ancestor: 0 });
+        subtree.name = 'Lineage ' + group.id;
+        return subtree;
+      }) };
+      const root = d3.hierarchy(data);
+      d3.cluster().size([Math.PI * 2, 1]).separation((a, b) => a.parent === b.parent ? 1 : 1.15)(root);
+      root.eachBefore(node => { node.divergence = (node.parent ? node.parent.divergence : 0) + node.data.length; });
+      const maxDistance = d3.max(root, node => node.divergence);
+      const leaves = root.leaves();
+      const svg = d3.select('#tree');
+      const zoomLayer = svg.append('g').attr('class', 'zoom-layer');
+      const centre = zoomLayer.append('g').attr('transform', 'translate(520,520)');
+      const drawing = centre.append('g').attr('class', 'drawing');
+      const color = node => groups.find(group => group.id === node.data.group)?.color || '#536970';
+      const radius = node => document.getElementById('scale').value === 'distance' ? node.divergence / maxDistance * 300 : node.y * 300;
+      const polar = (angle, r) => [Math.sin(angle) * r, -Math.cos(angle) * r];
+      const linePath = link => {
+        const s = link.source, t = link.target, sr = radius(s), tr = radius(t);
+        const start = polar(s.x, sr), bend = polar(t.x, sr), end = polar(t.x, tr);
+        return 'M' + start + (sr > 0 ? 'A' + sr + ',' + sr + ' 0 ' + (Math.abs(t.x - s.x) > Math.PI ? 1 : 0) + ',' + (t.x > s.x ? 1 : 0) + ' ' + bend : '') + 'L' + end;
+      };
+      const guides = drawing.append('g').attr('class', 'guides');
+      const links = drawing.append('g').selectAll('path').data(root.links()).join('path').attr('class', 'branch').attr('stroke', d => color(d.target)).attr('stroke-width', 1.25).style('cursor', 'pointer');
+      const leaders = drawing.append('g').selectAll('line').data(leaves).join('line').attr('class', 'leader');
+      const nodeLayer = drawing.append('g');
+      const nodes = nodeLayer.selectAll('circle').data(root.descendants()).join('circle').attr('class', 'node')
+        .attr('r', d => d === root ? 4.5 : d.children ? 2.2 : 2.5).attr('fill', color).attr('stroke', 'white').attr('stroke-width', .8)
+        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', d => 'Inspect ' + d.data.name);
+      const ringLayer = drawing.append('g').attr('class', 'annotation-rings');
+      const burdenColor = d3.scaleSequential(d3.interpolateYlOrBr).domain([3, 24]);
+      const dayColor = d3.scaleSequential(d3.interpolateBuPu).domain([0, 60]);
+      const arc = d3.arc();
+      const halfCell = Math.PI / leaves.length * .78;
+      const ringDefs = [{ r: 321, fill: d => stateColors[d.data.state], name: 'State' }, { r: 341, fill: d => burdenColor(d.data.burden), name: 'Burden' }, { r: 361, fill: d => dayColor(d.data.day), name: 'Sampling day' }];
+      ringDefs.forEach(ring => {
+        ringLayer.append('g').selectAll('path').data(leaves).join('path').attr('class', 'ring-segment')
+          .attr('d', d => arc({ innerRadius: ring.r, outerRadius: ring.r + 16, startAngle: d.x - halfCell, endAngle: d.x + halfCell }))
+          .attr('fill', ring.fill).attr('data-ring', ring.name).on('click', (_, d) => select(d)).on('pointerenter', showTooltip).on('pointermove', moveTooltip).on('pointerleave', hideTooltip);
+      });
+      const labels = drawing.append('g').selectAll('text').data(leaves).join('text').attr('class', 'tree-label').attr('dy', '.32em')
+        .attr('transform', d => 'rotate(' + (d.x * 180 / Math.PI - 90) + ') translate(390,0)' + (d.x >= Math.PI ? ' rotate(180)' : ''))
+        .attr('text-anchor', d => d.x < Math.PI ? 'start' : 'end').text(d => d.data.name).on('click', (_, d) => select(d));
+      const groupArc = drawing.append('g');
+      root.children.forEach(node => {
+        const terminal = node.leaves(), start = terminal[0].x - halfCell, end = terminal.at(-1).x + halfCell;
+        groupArc.append('path').attr('d', arc({ innerRadius: 459, outerRadius: 465, startAngle: start, endAngle: end })).attr('fill', color(node));
+        const middle = (start + end) / 2, point = polar(middle, 487);
+        groupArc.append('text').attr('class', 'clade-title').attr('x', point[0]).attr('y', point[1]).attr('text-anchor', 'middle').attr('fill', color(node)).text('LINEAGE ' + node.data.group);
+      });
+      let selected = null;
+      const tooltip = document.getElementById('tooltip');
+      function showTooltip(event, node) {
+        tooltip.replaceChildren();
+        const title = document.createElement('strong'); title.textContent = node.data.name;
+        const text = node.children ? node.leaves().length + ' observed descendants' : node.data.state + ' · ' + node.data.burden + ' variants · day ' + node.data.day;
+        tooltip.append(title, document.createElement('br'), document.createTextNode(text));
+        tooltip.hidden = false; moveTooltip(event);
+      }
+      function moveTooltip(event) {
+        const box = document.getElementById('chart').getBoundingClientRect();
+        tooltip.style.left = Math.max(0, Math.min(box.width - 235, event.clientX - box.left + 16)) + 'px';
+        tooltip.style.top = Math.max(0, event.clientY - box.top + 16) + 'px';
+      }
+      function hideTooltip() { tooltip.hidden = true; }
+      nodes.on('click', (_, d) => select(d)).on('keydown', (event, d) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(d); } })
+        .on('pointerenter', showTooltip).on('pointermove', moveTooltip).on('pointerleave', hideTooltip);
+      links.on('click', (_, d) => select(d.target));
+      function updateEmphasis() {
+        const filter = document.getElementById('lineage').value;
+        const query = document.getElementById('search').value.trim().toLowerCase();
+        const matches = leaves.filter(d => (!query || d.data.name.toLowerCase().includes(query)) && (filter === 'all' || d.data.group === filter));
+        const relevant = new Set(matches.flatMap(d => d.ancestors()));
+        const selectedSet = selected ? new Set([...selected.descendants(), ...selected.ancestors()]) : null;
+        const opacity = d => !relevant.has(d) ? .07 : selectedSet && !selectedSet.has(d) ? .22 : 1;
+        links.attr('opacity', d => opacity(d.target)).attr('stroke-width', d => selected && selected.ancestors().includes(d.target) ? 2.5 : 1.25);
+        nodes.attr('opacity', opacity).attr('r', d => d === selected ? 5 : d === root ? 4.5 : d.children ? 2.2 : 2.5);
+        labels.attr('opacity', opacity).attr('font-weight', d => d === selected ? 800 : 400);
+        ringLayer.selectAll('path').attr('opacity', opacity);
+        leaders.attr('opacity', opacity);
+        document.getElementById('search-note').textContent = matches.length + ' / 128 clones';
+      }
+      function select(node) {
+        selected = node;
+        const d = node || root, group = groups.find(group => group.id === d.data.group);
+        document.getElementById('selected-name').textContent = d.data.name;
+        document.getElementById('selected-subtitle').textContent = group ? 'Lineage ' + group.id + ' · ' + group.name : 'Root of the synthetic population';
+        document.getElementById('descendants').textContent = d.leaves().length;
+        document.getElementById('divergence').textContent = d.divergence.toFixed(3);
+        document.getElementById('burden').textContent = d.data.burden ?? '—';
+        document.getElementById('day').textContent = d.data.day ?? '—';
+        document.getElementById('annotation').textContent = d.children ? 'Ancestral branching point. Inspect a descendant to see terminal annotations.' : d.data.state + ' state · ' + group.driver + '. These are synthetic attributes.';
+        document.getElementById('ancestry').textContent = d.ancestors().reverse().map(n => n.data.name).join(' → ');
+        updateEmphasis();
+      }
+      function layout() {
+        links.attr('d', linePath);
+        nodes.attr('cx', d => polar(d.x, radius(d))[0]).attr('cy', d => polar(d.x, radius(d))[1]);
+        leaders.attr('x1', d => polar(d.x, radius(d) + 4)[0]).attr('y1', d => polar(d.x, radius(d) + 4)[1]).attr('x2', d => polar(d.x, 316)[0]).attr('y2', d => polar(d.x, 316)[1]);
+        const distance = document.getElementById('scale').value === 'distance';
+        const ticks = distance ? d3.ticks(0, maxDistance, 5).filter(d => d > 0) : [];
+        guides.selectAll('circle').data(ticks).join('circle').attr('class', 'guide').attr('r', d => d / maxDistance * 300);
+        guides.selectAll('text').data(ticks).join('text').attr('y', d => -d / maxDistance * 300 + 9).attr('x', 5).attr('fill', '#8ca0a5').attr('font-size', 7).text(d => d.toFixed(2));
+        document.getElementById('scale-note').textContent = distance ? 'Radius: cumulative synthetic divergence units' : 'Topology mode: branch lengths have no distance meaning';
+      }
+      const zoom = d3.zoom().scaleExtent([.65, 8]).on('zoom', event => { zoomLayer.attr('transform', event.transform); hideTooltip(); });
+      svg.call(zoom).on('dblclick.zoom', null);
+      document.getElementById('zoom-in').onclick = () => svg.call(zoom.scaleBy, 1.3);
+      document.getElementById('zoom-out').onclick = () => svg.call(zoom.scaleBy, 1 / 1.3);
+      document.getElementById('rotation').oninput = event => { drawing.attr('transform', 'rotate(' + event.target.value + ')'); document.getElementById('angle').textContent = event.target.value + '°'; };
+      document.getElementById('scale').onchange = layout;
+      document.getElementById('search').oninput = updateEmphasis;
+      document.getElementById('search').onkeydown = event => {
+        if (event.key !== 'Enter') return;
+        const query = event.target.value.trim().toLowerCase();
+        const node = root.descendants().find(d => d.data.name.toLowerCase() === query);
+        if (node) { document.getElementById('lineage').value = 'all'; if (node.children) event.target.value = ''; select(node); }
+      };
+      document.getElementById('lineage').onchange = () => { selected = null; select(null); };
+      document.getElementById('labels').onchange = event => labels.attr('display', event.target.checked ? null : 'none');
+      document.getElementById('rings').onchange = event => ringLayer.attr('display', event.target.checked ? null : 'none');
+      document.getElementById('clear').onclick = () => select(null);
+      document.getElementById('reset').onclick = () => {
+        document.getElementById('search').value = ''; document.getElementById('lineage').value = 'all'; document.getElementById('scale').value = 'distance';
+        ['labels', 'rings'].forEach(id => { document.getElementById(id).checked = true; }); labels.attr('display', null); ringLayer.attr('display', null);
+        document.getElementById('rotation').value = 0; document.getElementById('angle').textContent = '0°'; drawing.attr('transform', null);
+        svg.call(zoom.transform, d3.zoomIdentity); layout(); select(null);
+      };
+      groups.forEach(group => {
+        const button = document.createElement('button');
+        const swatch = document.createElement('i'); swatch.className = 'swatch'; swatch.style.background = group.color;
+        const count = document.createElement('small'); count.textContent = '32 clones';
+        button.append(swatch, document.createTextNode(group.id + ' · ' + group.name), count);
+        button.onclick = () => { document.getElementById('search').value = ''; document.getElementById('lineage').value = group.id; select(root.children.find(n => n.data.group === group.id)); };
+        document.getElementById('legend').appendChild(button);
+      });
+      Object.entries(stateColors).forEach(([state, color]) => {
+        const item = document.createElement('span'); const dot = document.createElement('i'); dot.className = 'swatch'; dot.style.background = color;
+        item.append(dot, document.createTextNode(' ' + state)); document.getElementById('state-legend').appendChild(item);
+      });
+      document.getElementById('export').onclick = () => {
+        const copy = svg.node().cloneNode(true);
+        copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); copy.setAttribute('width', '1040'); copy.setAttribute('height', '1040'); copy.style.background = '#fcfdfd';
+        const style = document.createElementNS('http://www.w3.org/2000/svg', 'style'); style.textContent = document.querySelector('style').textContent; copy.insertBefore(style, copy.firstChild);
+        copy.querySelector('.zoom-layer').removeAttribute('transform');
+        const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)], { type: 'image/svg+xml' }));
+        const link = document.createElement('a'); link.href = url; link.download = 'bioscale-synthetic-radial-lineage.svg'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      };
+      layout(); select(null);
+      document.getElementById('status').textContent = 'Ready · 128 synthetic terminal clones · ' + root.descendants().length + ' total nodes · D3.js 7.9.0';
+      document.querySelector('.figure-header span').textContent = ' · 4 lineages · ' + root.descendants().length + ' total nodes';
+    } catch (error) { document.getElementById('status').textContent = 'Unable to draw the atlas: ' + error.message; console.error(error); } }
+  </script>
+</body>
+</html>

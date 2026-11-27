@@ -14,4 +14,14 @@ All topology, divergence, variants, dates, and state labels are deterministic in
 
 References: [D3 cluster layout](https://d3js.org/d3-hierarchy/cluster), [D3 zoom](https://d3js.org/d3-zoom), and [D3 arcs](https://d3js.org/d3-shape/arc).
 
-Remaining modules will be created separately after each preceding PR is tested and merged: cellular spatial structure, molecular structure, environmental input/response sliders, population Müller plot, and multiscale genomic tracks.
+## 02 — Cellular spatial explorer
+
+Open `02-cellular-explorer.html` in Cursor and run with the same HTML preview workflow. It uses pinned React 18.3.1, React Three Fiber 8.17.10, and Three.js 0.170.0 directly from CDNs. No localhost, npm installation, or build step is needed; the preview needs internet access, JavaScript modules/import maps, and WebGL.
+
+The procedural cell includes an irregular transparent membrane, nucleus with pore rings and nucleolus, 24 winding ER paths, 12 mitochondria with cristae, 7 stacked Golgi cisternae, 36 cytoskeletal filaments, and 30 vesicles. The scientific-style scene includes soft lighting/shadows, a coordinate grid, labels, selectable structures, and an inspector.
+
+Try orbit/zoom/pan, selecting from the scene or Inspect menu, Focus structure, Isolate, layer visibility, membrane opacity, auto-rotation, the cross-section checkbox/axis/position slider, exploded view, scene PNG download, Overview, and Reset explorer. Clipping removes geometry on one side of the selected plane, including picking on that removed side; cut surfaces are uncapped. Exploded view intentionally offsets layers and is not a biological configuration. PNG export captures the 3D scene without HTML labels or controls.
+
+All geometry is deterministic and invented, not measured or calibrated. Coordinates use arbitrary units. Reference: [React Three Fiber Canvas](https://r3f.docs.pmnd.rs/api/canvas) and [scene events](https://r3f.docs.pmnd.rs/api/events).
+
+Remaining modules will be created separately after each preceding PR is tested and merged: molecular structure, environmental input/response sliders, population Müller plot, and multiscale genomic tracks.

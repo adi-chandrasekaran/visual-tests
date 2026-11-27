@@ -25,3 +25,11 @@ Open `cell-spatial-three.html` in Cursor to inspect the code, then run it using 
 Drag to rotate, scroll to zoom, and click the nucleus, orange mitochondria, or blue/teal vesicles. The Inspect menu provides another way to select each object. Try Show membrane, Auto-rotate, and Reset view. All shapes, locations, measurements, and marker data are invented placeholders, not a validated biological model.
 
 Built using the [Three.js documentation](https://threejs.org/docs/).
+
+## PR 6 — molecular structure (3Dmol.js)
+
+Open `protein-molecule-3dmol.html` in Cursor and run it using the same HTML preview workflow as the earlier files. No localhost server or npm installation is required. Internet access loads pinned 3Dmol.js 2.5.5; the preview must allow JavaScript and WebGL.
+
+Drag to rotate, scroll to zoom, click atoms or select a residue, and switch between ball-and-stick, stick, and space-filling styles. Try Inspect demo mutation, Auto-rotate, and Reset view. The 96-atom, 24-residue backbone is generated placeholder geometry with explicit bonds, no side chains, and no hydrogens. R12H is an illustrative annotation, not a structural prediction or a real variant interpretation.
+
+Built using the [3Dmol.js viewer documentation](https://3dmol.csb.pitt.edu/doc/glviewer/index.html).

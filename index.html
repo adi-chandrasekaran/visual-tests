@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioScale · Visual tests</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0d1714; color: #e7f2eb; }
+    header { max-width: 1240px; margin: auto; padding: 24px 24px 16px; }
+    h1 { margin: 0 0 8px; font-size: 1.65rem; }
+    p { margin: 0; color: #afc5b8; line-height: 1.5; }
+    #tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    button, #standalone { font: inherit; color: #e7f2eb; }
+    button { padding: 10px 14px; border: 1px solid #48695a; border-radius: 8px; background: #183025; cursor: pointer; }
+    button[aria-selected="true"] { background: #28543e; border-color: #80dbac; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #80dbac; outline-offset: 3px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    #standalone { color: #80dbac; text-underline-offset: 4px; }
+    #views { position: relative; height: max(830px, calc(100dvh - 245px)); border-top: 1px solid #2b4539; }
+    /* Inactive views keep their dimensions and state, including WebGL camera settings. */
+    .view { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
+    .view.active { visibility: visible; pointer-events: auto; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; background: #0d1714; }
+    noscript p { padding: 24px; }
+    @media (max-width: 600px) { header { padding: 20px 16px 16px; } button { padding: 9px 10px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BioScale · Visual tests</h1>
+    <p>Six interactive views, together in one application.</p>
+    <nav id="tabs" role="tablist" aria-label="Visualization views"></nav>
+    <div class="toolbar">
+      <p id="current" aria-live="polite"></p>
+      <a id="standalone" target="_blank" rel="noopener">Open this view individually ↗</a>
+    </div>
+  </header>
+  <main id="views" aria-label="Visualization workspace"></main>
+  <noscript><p>Enable JavaScript to use the visualization tabs. The individual HTML files are in the Visual test folder.</p></noscript>
+  <script>
+    // Each iframe loads the ORIGINAL file, never a copied or generated version.
+    // Save edits in Visual test/ and refresh this application to load those edits.
+    // Separate documents also isolate the original styles, globals, and library versions.
+    const views = [
+      { id: 'lineage', name: 'Clone lineage', tool: 'D3.js', file: 'clone-tree-d3.html' },
+      { id: 'population', name: 'Population evolution', tool: 'D3.js', file: 'clone-population-d3.html' },
+      { id: 'mutations', name: 'Mutation order', tool: 'D3.js', file: 'mutation-order-d3.html' },
+      { id: 'environment', name: 'Environmental effects', tool: 'D3.js', file: 'environment-effects-d3.html' },
+      { id: 'cell', name: '3D cell', tool: 'Three.js', file: 'cell-spatial-three.html' },
+      { id: 'molecule', name: 'Molecular structure', tool: '3Dmol.js', file: 'protein-molecule-3dmol.html' }
+    ];
+    const tabs = document.getElementById('tabs');
+    const workspace = document.getElementById('views');
+    const standalone = document.getElementById('standalone');
+    views.forEach((view, index) => {
+      view.url = 'Visual%20test/' + view.file;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'tab-' + view.id;
+      button.textContent = view.name;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-controls', 'panel-' + view.id);
+      button.addEventListener('click', () => activate(view.id));
+      button.addEventListener('keydown', (event) => {
+        let next;
+        if (event.key === 'ArrowRight') next = (index + 1) % views.length;
+        if (event.key === 'ArrowLeft') next = (index + views.length - 1) % views.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = views.length - 1;
+        if (next === undefined) return;
+        event.preventDefault();
+        activate(views[next].id);
+        views[next].button.focus();
+      });
+      tabs.appendChild(button);
+      const panel = document.createElement('section');
+      panel.id = 'panel-' + view.id;
+      panel.className = 'view';
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', button.id);
+      workspace.appendChild(panel);
+      view.button = button;
+      view.panel = panel;
+    });
+    function activate(id, updateHash = true) {
+      const current = views.find((view) => view.id === id) || views[0];
+      views.forEach((view) => {
+        const active = view === current;
+        view.button.setAttribute('aria-selected', String(active));
+        view.button.tabIndex = active ? 0 : -1;
+        view.panel.classList.toggle('active', active);
+        view.panel.setAttribute('aria-hidden', String(!active));
+        view.panel.inert = !active;
+      });
+      // Create each view on its first visit; subsequent tab switches retain its state.
+      if (!current.frame) {
+        const frame = document.createElement('iframe');
+        frame.title = current.name + ' · ' + current.tool;
+        frame.src = current.url;
+        current.panel.appendChild(frame);
+        current.frame = frame;
+      }
+      document.getElementById('current').textContent = current.name + ' · ' + current.tool;
+      standalone.href = current.url;
+      document.title = current.name + ' · BioScale visual tests';
+      if (updateHash && location.hash !== '#' + current.id) location.hash = current.id;
+    }
+    window.addEventListener('hashchange', () => activate(location.hash.slice(1), false));
+    activate(location.hash.slice(1), false);
+  </script>
+</body>
+</html>

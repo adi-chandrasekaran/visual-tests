@@ -1,6 +1,17 @@
 # Visual tests
 
-Six small, standalone browser prototypes for choosing BioScale visualizations. Each HTML file opens directly in Cursor's browser/preview and does not require a local development server.
+Six interactive prototypes for choosing BioScale visualizations, available individually or in one tabbed application.
+
+## Run the combined application
+
+1. Open this project in Cursor and open the root-level `index.html` code file.
+2. Run it using the same HTML preview workflow as the individual prototypes. No localhost server or build step is required.
+3. Use the six tabs to switch views. Each tab retains the original visualization, controls, and details panels. Selections and camera positions persist while switching tabs; refreshing resets them.
+4. Use **Open this view individually** or open any HTML file in `Visual test/` to run it separately.
+
+The application loads the original files directly in separate frames. After editing and saving a file in `Visual test/`, refresh the combined application to see the update. No code copying or rebuilding is needed. Keep the folder name and filenames unchanged, or update the file paths in `index.html` if you rename them.
+
+All six original HTML files live in `Visual test/`; the filenames below refer to that folder. Internet access is needed to load the visualization libraries, and the preview must permit JavaScript, local HTML frames, and WebGL for the 3D views. All biology data is illustrative placeholder data.
 
 ## PR 1 — clone lineage tree
 
